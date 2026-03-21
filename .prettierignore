@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+build
+**/dist
+**/build
+
+# Logs
+*.log
+npm-debug.log*
+
+# Env files
+.env
+.env.*
+
+# Git
+.git
+.gitignore
+
+# Editor
+.vscode
+.idea
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

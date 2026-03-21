@@ -1,4 +1,4 @@
-.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db restart-db db-logs build build-backend build-frontend clean test
+.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db restart-db db-logs db-status build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check clean clean-all dev logs test test-backend test-frontend deploy preview check fix setup
 
 help: ## Display available commands
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -51,6 +51,38 @@ build: ## Build both backend and frontend for production
 build-frontend: ## Build frontend for production
 	cd frontend && npm run build
 
+# Code Quality commands
+
+lint: lint-backend lint-frontend ## Run linter on all code
+
+lint-backend: ## Lint backend code
+	cd backend && npm run lint
+
+lint-frontend: ## Lint frontend code
+	cd frontend && npm run lint
+
+lint-fix: lint-fix-backend lint-fix-frontend ## Auto-fix linting issues on all code
+
+lint-fix-backend: ## Auto-fix backend linting issues
+	cd backend && npm run lint:fix
+
+lint-fix-frontend: ## Auto-fix frontend linting issues
+	cd frontend && npm run lint:fix
+
+format: format-backend format-frontend ## Format all code with Prettier
+
+format-backend: ## Format backend code
+	cd backend && npm run format
+
+format-frontend: ## Format frontend code
+	cd frontend && npm run format
+
+format-check: ## Check if code is properly formatted
+	cd backend && npm run format:check
+	cd frontend && npm run format:check
+
+# Cleanup commands
+
 clean: ## Clean dependencies and build artifacts
 	rm -rf backend/node_modules
 	rm -rf frontend/node_modules
@@ -69,3 +101,34 @@ dev: ## Start development (install + start backend in background)
 
 logs: ## View logs (if needed for debugging)
 	@echo "Check terminal output for logs"
+
+# Testing commands (placeholder for future)
+
+test: ## Run all tests
+	@echo "No tests configured yet"
+
+test-backend: ## Run backend tests
+	@echo "No backend tests configured yet"
+
+test-frontend: ## Run frontend tests
+	@echo "No frontend tests configured yet"
+
+# Production/Deployment commands
+
+deploy: build ## Build and prepare for deployment
+	@echo "Build complete. Ready for deployment."
+	@echo "Frontend build output is in: frontend/dist"
+
+preview: build-frontend ## Preview production build locally
+	cd frontend && npm run preview
+
+# Development workflow
+
+check: format-check lint ## Run all checks (format + lint)
+	@echo "✅ All checks passed!"
+
+fix: format lint-fix ## Format and auto-fix all code
+	@echo "✅ Code formatted and linted!"
+
+setup: install start-db ## Complete first-time setup
+	@echo "✅ Setup complete! Now run 'make start-backend' and 'make start-frontend'"

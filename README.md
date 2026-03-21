@@ -73,6 +73,50 @@ make start-frontend
 
 Run `make help` to see all available commands.
 
+### Complete Makefile Commands
+
+The project includes a comprehensive Makefile with the following commands:
+
+**Setup & Installation:**
+- `make setup` - Complete first-time setup (install + start MongoDB)
+- `make install` - Install all dependencies (backend + frontend)
+- `make install-backend` - Install backend dependencies only
+- `make install-frontend` - Install frontend dependencies only
+
+**Database Management:**
+- `make start-db` - Start MongoDB with Docker Compose
+- `make stop-db` - Stop MongoDB container
+- `make restart-db` - Restart MongoDB container
+- `make db-logs` - View MongoDB logs
+- `make db-status` - Check MongoDB status
+
+**Development:**
+- `make start-backend` - Start the backend server
+- `make start-frontend` - Start the frontend application
+- `make dev` - Start backend and frontend together
+
+**Code Quality:**
+- `make lint` - Run linter on all code
+- `make lint-fix` - Auto-fix linting issues
+- `make format` - Format all code with Prettier
+- `make format-check` - Check if code is properly formatted
+- `make check` - Run all checks (format + lint)
+- `make fix` - Format and auto-fix all code
+
+**Building:**
+- `make build` - Build frontend for production
+- `make preview` - Preview production build locally
+- `make deploy` - Build and prepare for deployment
+
+**Cleanup:**
+- `make clean` - Clean dependencies and build artifacts
+- `make clean-all` - Clean everything including .env files
+
+**Testing (placeholders):**
+- `make test` - Run all tests
+- `make test-backend` - Run backend tests
+- `make test-frontend` - Run frontend tests
+
 ### MongoDB Setup
 
 This project requires MongoDB. The easiest way is using Docker:
@@ -277,6 +321,32 @@ cd frontend
 npm run build
 npm run preview
 ```
+
+## Code Quality
+
+This project uses **ESLint** and **Prettier** to maintain code quality and consistent formatting.
+
+### Linting and Formatting Commands
+
+**Frontend:**
+```bash
+cd frontend
+npm run lint          # Check for linting errors
+npm run lint:fix      # Auto-fix linting errors
+npm run format        # Format code with Prettier
+npm run format:check  # Check formatting
+```
+
+**Backend:**
+```bash
+cd backend
+npm run lint          # Check for linting errors
+npm run lint:fix      # Auto-fix linting errors
+npm run format        # Format code with Prettier
+npm run format:check  # Check formatting
+```
+
+See [CODE_QUALITY.md](CODE_QUALITY.md) for detailed information about code quality tools, editor integration, and configuration.
 
 ## License
 
