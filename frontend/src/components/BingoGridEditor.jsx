@@ -3,7 +3,16 @@
  * Editable grid of bingo tiles
  */
 
-function BingoGridEditor({ tiles, rows, columns, onTileChange }) {
+function BingoGridEditor({ tiles, rows, columns, onTileChange, onTileClick }) {
+  const isMobile = () => window.innerWidth < 768;
+
+  const handleTileClick = (tile, index) => {
+    // On mobile, open full-size editor modal
+    if (onTileClick && isMobile()) {
+      onTileClick({ ...tile, position: index });
+    }
+  };
+
   return (
     <div
       className="bingo-grid"
@@ -13,13 +22,18 @@ function BingoGridEditor({ tiles, rows, columns, onTileChange }) {
       }}
     >
       {tiles.map((tile, index) => (
-        <div key={index} className="bingo-tile">
+        <div
+          key={index}
+          className="bingo-tile"
+          onClick={() => handleTileClick(tile, index)}
+        >
           <textarea
             value={tile.value}
             onChange={(e) => onTileChange(index, e.target.value)}
             placeholder={`Tile ${index + 1}`}
             maxLength={40}
             rows={3}
+            readOnly={onTileClick && isMobile()}
           />
         </div>
       ))}

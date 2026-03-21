@@ -6,6 +6,7 @@ import MobileActionBar from "../components/MobileActionBar";
 import CardNameModal from "../components/CardNameModal";
 import BingoGridControls from "../components/BingoGridControls";
 import BingoGridEditor from "../components/BingoGridEditor";
+import TileEditorModal from "../components/TileEditorModal";
 
 function CreateCard() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ function CreateCard() {
   const [saving, setSaving] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [playerName, setPlayerName] = useState("");
+  const [selectedTile, setSelectedTile] = useState(null);
 
   useEffect(() => {
     // Load existing player name
@@ -128,6 +130,7 @@ function CreateCard() {
           rows={rows}
           columns={columns}
           onTileChange={handleTileChange}
+          onTileClick={setSelectedTile}
         />
 
         <div className="button-group">
@@ -156,6 +159,13 @@ function CreateCard() {
             ariaLabel: "Save card",
           },
         ]}
+      />
+
+      {/* Mobile tile editor modal */}
+      <TileEditorModal
+        tile={selectedTile}
+        onSave={handleTileChange}
+        onClose={() => setSelectedTile(null)}
       />
     </div>
   );

@@ -678,6 +678,12 @@ button.primary:hover:not(:disabled) {
     padding: var(--padding-md);
     /* Touch-friendly */
     -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+
+  .bingo-tile textarea[readonly] {
+    cursor: pointer;
+    user-select: none;
   }
 
   .bingo-tile input,
@@ -1832,6 +1838,49 @@ button.primary:hover:not(:disabled) {
 
 .tile-viewer-btn.close-btn .btn-icon {
   font-size: 2rem;
+}
+
+/* Tile Editor Modal (for Create/Edit pages) */
+.tile-editor-container {
+  margin-bottom: var(--spacing-xl);
+}
+
+.tile-editor-container label {
+  display: block;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
+
+.tile-editor-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: var(--padding-lg);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  border: 2px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  resize: vertical;
+  transition: var(--transition-fast);
+}
+
+.tile-editor-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.tile-char-count {
+  text-align: right;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
+  font-weight: var(--font-weight-medium);
 }
 
 @keyframes fadeIn {

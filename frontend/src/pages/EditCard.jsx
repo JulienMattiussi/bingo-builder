@@ -6,6 +6,7 @@ import MobileActionBar from "../components/MobileActionBar";
 import CardNameModal from "../components/CardNameModal";
 import BingoGridControls from "../components/BingoGridControls";
 import BingoGridEditor from "../components/BingoGridEditor";
+import TileEditorModal from "../components/TileEditorModal";
 
 function EditCard() {
   const { id } = useParams();
@@ -21,6 +22,7 @@ function EditCard() {
   const [showNameModal, setShowNameModal] = useState(false);
   const [playerName, setPlayerName] = useState("");
   const [hasAskedName, setHasAskedName] = useState(false);
+  const [selectedTile, setSelectedTile] = useState(null);
 
   useEffect(() => {
     loadCard();
@@ -197,6 +199,7 @@ function EditCard() {
           rows={rows}
           columns={columns}
           onTileChange={handleTileChange}
+          onTileClick={setSelectedTile}
         />
 
         <div className="button-group">
@@ -248,6 +251,13 @@ function EditCard() {
                 : "",
           },
         ]}
+      />
+
+      {/* Mobile tile editor modal */}
+      <TileEditorModal
+        tile={selectedTile}
+        onSave={handleTileChange}
+        onClose={() => setSelectedTile(null)}
       />
     </div>
   );
