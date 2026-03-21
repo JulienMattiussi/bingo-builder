@@ -66,6 +66,10 @@
   --spacing-lg: 1.5rem; /* 24px */
   --spacing-xl: 2rem; /* 32px */
 
+  /* === Touch Target Sizes === */
+  --touch-target-min: 44px; /* iOS minimum recommended */
+  --touch-target-comfortable: 48px; /* Material Design recommendation */
+
   /* === Padding Scale === */
   --padding-xs: 0.4rem; /* 6.4px */
   --padding-sm: 0.6rem; /* 9.6px */
@@ -109,6 +113,11 @@
   --transition-fast: all 0.2s;
   --transition-medium: all 0.3s ease;
   --transition-slow: width 0.3s ease;
+
+  /* === Mobile Breakpoints === */
+  --breakpoint-mobile: 480px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
 
   /* === Z-Index === */
   --z-index-base: 1;

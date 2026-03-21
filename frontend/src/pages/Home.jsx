@@ -121,18 +121,8 @@ function Home() {
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "2rem",
-        }}
-      >
+      <div style={{ marginBottom: "2rem" }}>
         <h1>Bingo Cards</h1>
-        <Link to="/create">
-          <button className="success">+ Create New Card</button>
-        </Link>
       </div>
 
       {cards.length === 0 ? (

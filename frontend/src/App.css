@@ -12,6 +12,9 @@
   justify-content: space-between;
   align-items: center;
   box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .nav-brand {
@@ -385,6 +388,9 @@
   overflow-wrap: break-word;
   hyphens: auto;
   min-height: 120px;
+  /* Better touch feedback */
+  -webkit-tap-highlight-color: rgba(52, 152, 219, 0.2);
+  touch-action: manipulation;
 }
 
 .bingo-grid.play-mode .bingo-tile:hover:not(.checked) {
@@ -392,9 +398,18 @@
   transform: scale(1.02);
 }
 
+.bingo-grid.play-mode .bingo-tile:active:not(.checked) {
+  transform: scale(0.98);
+  background: var(--color-gray-200);
+}
+
 .bingo-grid.play-mode .bingo-tile.checked:hover {
   transform: scale(1.02);
   filter: brightness(1.1);
+}
+
+.bingo-grid.play-mode .bingo-tile.checked:active {
+  transform: scale(0.98);
 }
 
 .bingo-grid.play-mode .bingo-tile span {
@@ -414,12 +429,20 @@ button {
   background: var(--color-primary);
   color: white;
   font-weight: var(--font-weight-medium);
+  /* Better touch interactions */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: var(--shadow-button);
   background: var(--color-primary-dark);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 button:disabled {
@@ -567,7 +590,26 @@ button.primary:hover:not(:disabled) {
   font-weight: var(--font-weight-bold);
 }
 
-/* Responsive adjustments */
+/* ============================================
+   Responsive Design - Mobile Optimizations
+   ============================================
+   
+   Mobile-first approach with three breakpoints:
+   - Desktop: > 1024px (default styles)
+   - Tablet: 768px - 1024px
+   - Mobile: 480px - 768px
+   - Small Mobile: < 480px
+   
+   Key mobile improvements:
+   - Touch-friendly button sizes (min 44px)
+   - Optimized font sizes (16px minimum to prevent zoom)
+   - Better spacing and layouts for small screens
+   - Touch gestures and active states
+   - Safe area support for notched devices
+   - Improved navigation on small screens
+   ============================================ */
+
+/* Tablet and below */
 @media (max-width: 1024px) {
   .grid-controls {
     gap: var(--spacing-lg);
@@ -584,7 +626,41 @@ button.primary:hover:not(:disabled) {
   }
 }
 
+/* Mobile and tablet */
 @media (max-width: 768px) {
+  .navbar {
+    padding: var(--padding-md) var(--padding-lg);
+  }
+
+  .nav-brand {
+    font-size: 1.25rem;
+  }
+
+  .nav-links {
+    gap: var(--spacing-md);
+  }
+
+  .nav-links a {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-md);
+  }
+
+  .main-content {
+    padding: var(--spacing-md);
+  }
+
+  .card {
+    padding: var(--padding-lg);
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+  }
+
   .bingo-grid {
     gap: 6px;
     padding: var(--padding-lg);
@@ -593,6 +669,8 @@ button.primary:hover:not(:disabled) {
   .bingo-tile {
     min-height: 100px;
     padding: var(--padding-md);
+    /* Touch-friendly */
+    -webkit-tap-highlight-color: transparent;
   }
 
   .bingo-tile input,
@@ -657,6 +735,267 @@ button.primary:hover:not(:disabled) {
     min-height: 30px;
     font-size: 0.6rem;
     padding: 0.3rem;
+  }
+
+  /* Better button sizes for touch */
+  button {
+    min-height: var(--touch-target-min);
+    padding: 12px 20px;
+  }
+
+  .button-compact {
+    min-height: 40px;
+    padding: var(--spacing-sm) var(--padding-md);
+  }
+
+  .btn-dimension {
+    width: var(--touch-target-comfortable);
+    height: var(--touch-target-comfortable);
+  }
+
+  /* Better forms on mobile */
+  input,
+  textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px;
+  }
+
+  .title-input {
+    font-size: 16px;
+  }
+
+  .celebration-text {
+    font-size: 2.5rem;
+  }
+
+  .celebration-subtext {
+    font-size: 1.25rem;
+  }
+
+  .celebration-button {
+    font-size: 1rem;
+    padding: var(--padding-md) var(--padding-lg);
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: var(--padding-lg);
+    max-width: none;
+  }
+
+  .modal-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .play-card-layout {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Main content appears second */
+  .play-card-main {
+    order: 2;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  /* Player list: pure overlay on mobile - slides up from bottom */
+  .player-list-sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 60vh;
+    z-index: 960;
+    background: white;
+    padding: var(--spacing-md);
+    padding-bottom: calc(
+      var(--touch-target-comfortable) + var(--spacing-md) * 2
+    );
+    overflow-y: auto;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+  }
+
+  .player-list-sidebar.mobile-open {
+    transform: translateY(0);
+  }
+
+  .player-list-sidebar.mobile-open .player-list-container {
+    border: 2px solid var(--color-primary);
+    box-shadow: var(--shadow-md);
+  }
+
+  .player-list-sidebar .player-list-container {
+    margin-bottom: 0;
+  }
+
+  .play-card-main {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  /* Reduce header spacing on mobile */
+  .play-card-header {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .play-card-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .progress-info {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* Small mobile phones */
+@media (max-width: 480px) {
+  .navbar {
+    padding: var(--padding-sm) var(--padding-md);
+    flex-wrap: wrap;
+  }
+
+  .nav-brand {
+    font-size: 1.1rem;
+  }
+
+  .nav-links {
+    width: 100%;
+    order: 1;
+    margin-top: var(--spacing-sm);
+    justify-content: space-around;
+    gap: var(--spacing-sm);
+  }
+
+  .nav-links a {
+    padding: var(--spacing-xs);
+    font-size: 0.8rem;
+  }
+
+  .main-content {
+    padding: var(--spacing-sm);
+  }
+
+  .card {
+    padding: var(--padding-md);
+    border-radius: var(--radius-sm);
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .grid-controls {
+    padding: var(--padding-md);
+    gap: var(--spacing-sm);
+  }
+
+  .bingo-grid {
+    gap: 4px;
+    padding: var(--padding-md);
+    border-radius: var(--radius-md);
+  }
+
+  .bingo-tile {
+    min-height: 80px;
+    padding: var(--spacing-sm);
+    font-size: 0.8rem;
+  }
+
+  .bingo-tile input,
+  .bingo-tile textarea {
+    font-size: 0.85rem;
+  }
+
+  .card-item {
+    padding: var(--padding-md);
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .button-group button {
+    width: 100%;
+  }
+
+  .grid-size-info {
+    font-size: 1.1rem;
+  }
+
+  .celebration-text {
+    font-size: 2rem;
+  }
+
+  .celebration-subtext {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .modal-content {
+    padding: var(--padding-md);
+  }
+
+  .modal-content h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+  }
+
+  .modal-buttons button {
+    width: 100%;
+  }
+
+  /* Horizontal card layout improvements */
+  .horizontal-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .button-column {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .button-column button {
+    flex: 1;
+  }
+
+  .button-column a {
+    flex: 1;
+  }
+
+  .button-column a button {
+    width: 100%;
+  }
+
+  /* Reduce max expanded height on small screens */
+  .player-list-sidebar.mobile-open {
+    max-height: 50vh;
+  }
+
+  /* More compact header on small screens */
+  .play-card-header {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .play-card-header h1 {
+    font-size: 1.25rem;
+    margin-bottom: 0;
+  }
+
+  .progress-info {
+    font-size: 0.8rem;
+    margin-top: var(--spacing-xs);
   }
 }
 
@@ -1067,7 +1406,6 @@ button.primary:hover:not(:disabled) {
   background: var(--color-gray-100);
   border-radius: var(--radius-md);
   padding: 12px 16px;
-  transition: var(--transition-fast);
   border: 2px solid transparent;
 }
 
@@ -1084,11 +1422,6 @@ button.primary:hover:not(:disabled) {
 .player-item.completed-player.current-player {
   background: linear-gradient(135deg, #fff9e6 0%, #e3f2fd 100%);
   border-color: var(--color-warning);
-}
-
-.player-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-hover);
 }
 
 .player-info {
@@ -1201,14 +1534,28 @@ button.primary:hover:not(:disabled) {
   display: flex;
   gap: 24px;
   align-items: flex-start;
+  position: relative;
 }
 
-.player-list-sidebar {
-  flex: 0 0 280px;
-  position: sticky;
-  top: 20px;
-  max-height: calc(100vh - 120px);
-  overflow-y: auto;
+/* Player list toggle button - now replaced by mobile action bar button */
+.player-list-toggle {
+  display: none;
+}
+
+/* Hide backdrop on desktop - only for mobile */
+.player-list-backdrop {
+  display: none;
+}
+
+/* Desktop player list sidebar - only on large screens */
+@media (min-width: 1025px) {
+  .player-list-sidebar {
+    flex: 0 0 280px;
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
 }
 
 .player-list-sidebar .player-list-container {
@@ -1220,40 +1567,19 @@ button.primary:hover:not(:disabled) {
   min-width: 0;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .notification-container {
-    left: 20px;
-    right: 20px;
-    max-width: none;
-  }
+.play-card-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
 
-  .player-list-container {
-    padding: 16px;
-  }
+.play-card-header h1 {
+  margin-bottom: var(--spacing-sm);
+}
 
-  .player-name {
-    font-size: 14px;
-  }
-
-  .player-progress {
-    font-size: 12px;
-  }
-
-  .play-card-layout {
-    flex-direction: column;
-  }
-
-  .player-list-sidebar {
-    flex: 1 1 auto;
-    width: 100%;
-    position: static;
-    max-height: none;
-  }
-
-  .player-list-sidebar .player-list-container {
-    margin-bottom: 24px;
-  }
+.progress-info {
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-base);
 }
 
 /* ============================================
@@ -1309,6 +1635,280 @@ button.primary:hover:not(:disabled) {
 
 .m-0 {
   margin: 0;
+}
+
+/* Mobile Tile Viewer Modal */
+.tile-viewer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--spacing-lg);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.tile-viewer-content {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--padding-xl);
+  max-width: 500px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s ease-out;
+}
+
+.tile-viewer-tile {
+  background: var(--gradient-purple);
+  border-radius: var(--radius-md);
+  padding: var(--padding-xl);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.tile-viewer-tile span {
+  font-size: 1.75rem;
+  font-weight: var(--font-weight-semibold);
+  color: white;
+  line-height: 1.4;
+  word-break: break-word;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tile-viewer-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-direction: column;
+}
+
+.tile-viewer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--padding-md) var(--padding-lg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  border: none;
+  border-radius: var(--radius-md);
+  min-height: var(--touch-target-comfortable);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.tile-viewer-btn .btn-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.tile-viewer-btn .btn-text {
+  font-size: 1rem;
+}
+
+.tile-viewer-btn.check-btn {
+  background: var(--color-success);
+  color: white;
+}
+
+.tile-viewer-btn.check-btn:hover {
+  background: var(--color-success-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.tile-viewer-btn.check-btn:active {
+  transform: translateY(0);
+}
+
+.tile-viewer-btn.uncheck-btn {
+  background: var(--color-warning);
+  color: white;
+}
+
+.tile-viewer-btn.uncheck-btn:hover {
+  background: var(--color-warning-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.tile-viewer-btn.uncheck-btn:active {
+  transform: translateY(0);
+}
+
+.tile-viewer-btn.close-btn {
+  background: var(--color-gray-200);
+  color: var(--color-text-primary);
+}
+
+.tile-viewer-btn.close-btn:hover {
+  background: var(--color-gray-300);
+}
+
+.tile-viewer-btn.close-btn .btn-icon {
+  font-size: 2rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Make tile viewer work on smaller screens */
+@media (max-width: 480px) {
+  .tile-viewer-overlay {
+    padding: var(--spacing-md);
+  }
+
+  .tile-viewer-content {
+    padding: var(--padding-lg);
+  }
+
+  .tile-viewer-tile {
+    min-height: 150px;
+    padding: var(--padding-lg);
+  }
+
+  .tile-viewer-tile span {
+    font-size: 1.5rem;
+  }
+
+  .tile-viewer-btn .btn-text {
+    font-size: 0.9rem;
+  }
+}
+
+/* Mobile Bottom Action Bar */
+.mobile-action-bar {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  /* Backdrop overlay when player list is open on mobile/tablet */
+  .player-list-backdrop {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 950;
+    animation: fadeInBackdrop 0.3s ease-out;
+    cursor: pointer;
+  }
+
+  @keyframes fadeInBackdrop {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .mobile-action-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 2px solid var(--color-gray-300);
+    padding: var(--spacing-sm) var(--spacing-md);
+    gap: var(--spacing-sm);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 970;
+    justify-content: space-around;
+  }
+
+  .mobile-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    flex: 1;
+    min-height: var(--touch-target-comfortable);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mobile-action-btn .btn-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .mobile-action-btn .btn-label {
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+
+  .mobile-action-btn:active {
+    transform: scale(0.95);
+  }
+
+  .mobile-action-btn.active {
+    background: var(--color-success) !important;
+    box-shadow: var(--shadow-md);
+  }
+
+  .mobile-action-btn.active:active {
+    background: var(--color-success-dark) !important;
+  }
+
+  .mobile-action-btn.danger {
+    background: var(--color-danger);
+  }
+
+  .mobile-action-btn.danger:active {
+    background: var(--color-danger-dark);
+  }
+
+  /* Add bottom padding to play card main to account for fixed action bar */
+  .play-card-main {
+    padding-bottom: calc(
+      var(--touch-target-comfortable) + var(--spacing-xl) + var(--spacing-md)
+    );
+  }
+
+  /* Hide the desktop button group on mobile */
+  .play-card-main .button-group {
+    display: none;
+  }
 }
 
 /* Flexbox utilities */

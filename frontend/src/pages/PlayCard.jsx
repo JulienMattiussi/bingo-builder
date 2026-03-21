@@ -18,6 +18,10 @@ function PlayCard() {
   const [notifications, setNotifications] = useState([]);
   const [players, setPlayers] = useState([]);
   const [isPeerConnected, setIsPeerConnected] = useState(false);
+  // Player list is hidden by default on mobile, can be toggled open
+  const [isPlayerListOpen, setIsPlayerListOpen] = useState(false);
+  // Selected tile for mobile full-size view
+  const [selectedTile, setSelectedTile] = useState(null);
 
   const peerConnectionRef = useRef(null);
   const notificationIdRef = useRef(0);
@@ -121,6 +125,16 @@ function PlayCard() {
     const totalTiles = rows * columns;
     // Check if all tiles are checked (full card completion)
     return checked.length === totalTiles;
+  };
+
+  const handleTileClick = (tile) => {
+    // On mobile (screen width < 768px), open full-size viewer
+    if (window.innerWidth < 768) {
+      setSelectedTile(tile);
+    } else {
+      // On desktop, toggle directly
+      toggleTile(tile.position);
+    }
   };
 
   const toggleTile = (position) => {
@@ -255,16 +269,46 @@ function PlayCard() {
         </div>
       )}
       <div className="play-card-layout">
-        {isPeerConnected && players.length > 0 && (
-          <aside className="player-list-sidebar">
-            <PlayerList players={players} totalTiles={card.tiles.length} />
-          </aside>
+        {isPeerConnected && (
+          <>
+            {/* Mobile backdrop overlay - click to close player list */}
+            {isPlayerListOpen && (
+              <div
+                className="player-list-backdrop"
+                onClick={() => setIsPlayerListOpen(false)}
+                aria-hidden="true"
+              />
+            )}
+
+            {/* Mobile: Toggle button for player list (hidden by default) */}
+            <button
+              className="player-list-toggle"
+              onClick={() => setIsPlayerListOpen(!isPlayerListOpen)}
+              aria-label={
+                isPlayerListOpen ? "Hide player list" : "Show player list"
+              }
+              aria-expanded={isPlayerListOpen}
+            >
+              👥 Active Players ({players.length})
+              <span className={`toggle-icon ${isPlayerListOpen ? "open" : ""}`}>
+                {isPlayerListOpen ? "▼" : "▶"}
+              </span>
+            </button>
+
+            {/* Player list sidebar (hidden by default on mobile) */}
+            <aside
+              className={`player-list-sidebar ${isPlayerListOpen ? "mobile-open" : ""}`}
+              aria-hidden={!isPlayerListOpen}
+            >
+              <PlayerList players={players} totalTiles={card.tiles.length} />
+            </aside>
+          </>
         )}
 
         <div className="play-card-main">
-          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <div className="play-card-header">
             <h1>{card.title}</h1>
-            <p style={{ color: "#7f8c8d", marginTop: "0.5rem" }}>
+            <p className="progress-info">
               {checkedTiles.length} / {card.tiles.length} tiles checked
             </p>
           </div>
@@ -281,7 +325,7 @@ function PlayCard() {
                 <div
                   key={tile.position}
                   className={`bingo-tile ${checkedTiles.includes(tile.position) ? "checked" : ""}`}
-                  onClick={() => toggleTile(tile.position)}
+                  onClick={() => handleTileClick(tile)}
                 >
                   <span>{tile.value}</span>
                 </div>
@@ -309,6 +353,84 @@ function PlayCard() {
           </div>
         </div>
       </div>
+
+      {/* Mobile bottom action bar - fixed at bottom on mobile */}
+      <div className="mobile-action-bar">
+        {isPeerConnected && (
+          <button
+            className={`mobile-action-btn ${isPlayerListOpen ? "active" : ""}`}
+            onClick={() => setIsPlayerListOpen(!isPlayerListOpen)}
+            aria-label={
+              isPlayerListOpen ? "Hide player list" : "Show player list"
+            }
+            aria-expanded={isPlayerListOpen}
+          >
+            <span className="btn-icon">👥</span>
+            <span className="btn-label">
+              Players {isPlayerListOpen ? "▼" : "▲"}
+            </span>
+          </button>
+        )}
+        <button className="mobile-action-btn" onClick={copyShareLink}>
+          <span className="btn-icon">🔗</span>
+          <span className="btn-label">Share</span>
+        </button>
+        <button className="mobile-action-btn danger" onClick={resetCard}>
+          <span className="btn-icon">↻</span>
+          <span className="btn-label">Reset</span>
+        </button>
+      </div>
+
+      {/* Mobile tile viewer modal */}
+      {selectedTile && (
+        <div
+          className="tile-viewer-overlay"
+          onClick={() => setSelectedTile(null)}
+        >
+          <div
+            className="tile-viewer-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="tile-viewer-tile">
+              <span>{selectedTile.value}</span>
+            </div>
+            <div className="tile-viewer-actions">
+              <button
+                className={`tile-viewer-btn ${checkedTiles.includes(selectedTile.position) ? "uncheck-btn" : "check-btn"}`}
+                onClick={() => {
+                  toggleTile(selectedTile.position);
+                  setSelectedTile(null);
+                }}
+                aria-label={
+                  checkedTiles.includes(selectedTile.position)
+                    ? "Uncheck tile"
+                    : "Check tile"
+                }
+              >
+                {checkedTiles.includes(selectedTile.position) ? (
+                  <>
+                    <span className="btn-icon">✕</span>
+                    <span className="btn-text">Uncheck</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="btn-icon">✓</span>
+                    <span className="btn-text">Check</span>
+                  </>
+                )}
+              </button>
+              <button
+                className="tile-viewer-btn close-btn"
+                onClick={() => setSelectedTile(null)}
+                aria-label="Close"
+              >
+                <span className="btn-icon">×</span>
+                <span className="btn-text">Close</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
