@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import cardRoutes from "./routes/cards.js";
+import peerRoutes from "./routes/peers.js";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/cards", cardRoutes);
+app.use("/api/peers", peerRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

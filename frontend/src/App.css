@@ -920,3 +920,325 @@ button.primary:hover:not(:disabled) {
     opacity: 1;
   }
 }
+
+/* ============================================
+   Notification System
+   ============================================ */
+
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+}
+
+.notification {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top right;
+  animation: notificationSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 4px solid #3498db;
+}
+
+.notification.win {
+  border-left: 4px solid #f39c12;
+  background: linear-gradient(135deg, #fff 0%, #fff9e6 100%);
+}
+
+.notification.unvalidated {
+  border-left: 4px solid #95a5a6;
+  background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+}
+
+.notification.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.notification.hide {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.notification-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.notification-message {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c3e50;
+  line-height: 1.4;
+}
+
+.notification-close {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #95a5a6;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.notification-close:hover {
+  background: #ecf0f1;
+  color: #7f8c8d;
+  transform: none;
+  box-shadow: none;
+}
+
+@keyframes notificationSlideIn {
+  from {
+    transform: translateX(120%) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   Player List
+   ============================================ */
+
+.player-list-container {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e1e8ed;
+}
+
+.player-list-title {
+  margin: 0 0 16px 0;
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-list-title::before {
+  content: "👥";
+  font-size: 20px;
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.player-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.player-item.current-player {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border-color: #3498db;
+}
+
+.player-item.completed-player {
+  background: linear-gradient(135deg, #fff9e6 0%, #ffe8cc 100%);
+  border-color: #f39c12;
+}
+
+.player-item.completed-player.current-player {
+  background: linear-gradient(135deg, #fff9e6 0%, #e3f2fd 100%);
+  border-color: #f39c12;
+}
+
+.player-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.player-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.player-icon {
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-icon.crown {
+  animation: crownGlow 2s ease-in-out infinite;
+}
+
+.player-icon.star {
+  font-size: 14px;
+  opacity: 0.75;
+  margin-left: 2px;
+}
+
+@keyframes crownGlow {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px rgba(243, 156, 18, 0.5));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 4px rgba(243, 156, 18, 0.8));
+  }
+}
+
+.you-badge {
+  color: #3498db;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.player-progress {
+  font-size: 13px;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.player-progress-bar {
+  height: 8px;
+  background: #e1e8ed;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.player-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3498db 0%, #2ecc71 100%);
+  border-radius: 4px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.player-item.current-player .player-progress-fill {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.player-item.completed-player .player-progress-fill {
+  background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
+}
+
+.player-item.current-player.completed-player .player-progress-fill {
+  background: linear-gradient(90deg, #f39c12 0%, #667eea 100%);
+}
+
+.player-list-note {
+  margin-top: 12px;
+  margin-bottom: 0;
+  font-size: 13px;
+  color: #7f8c8d;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ============================================
+   Play Card Layout (Sidebar + Main)
+   ============================================ */
+
+.play-card-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.player-list-sidebar {
+  flex: 0 0 280px;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.player-list-sidebar .player-list-container {
+  margin-bottom: 0;
+}
+
+.play-card-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .notification-container {
+    left: 20px;
+    right: 20px;
+    max-width: none;
+  }
+
+  .player-list-container {
+    padding: 16px;
+  }
+
+  .player-name {
+    font-size: 14px;
+  }
+
+  .player-progress {
+    font-size: 12px;
+  }
+
+  .play-card-layout {
+    flex-direction: column;
+  }
+
+  .player-list-sidebar {
+    flex: 1 1 auto;
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+
+  .player-list-sidebar .player-list-container {
+    margin-bottom: 24px;
+  }
+}

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../utils/api";
+import { playerNameUtils } from "../utils/playerName";
 
 function Home() {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const currentPlayerName = playerNameUtils.getPlayerName();
 
   useEffect(() => {
     loadCards();
@@ -27,7 +29,7 @@ function Home() {
     if (!window.confirm("Are you sure you want to delete this card?")) return;
 
     try {
-      await api.deleteCard(id);
+      await api.deleteCard(id, currentPlayerName);
       await loadCards();
     } catch (err) {
       alert(err.message);
@@ -43,7 +45,7 @@ function Home() {
       return;
 
     try {
-      await api.unpublishCard(id);
+      await api.unpublishCard(id, currentPlayerName);
       await loadCards();
     } catch (err) {
       alert(err.message);
@@ -77,122 +79,145 @@ function Home() {
         </div>
       ) : (
         <div className="card-list">
-          {cards.map((card) => (
-            <div key={card._id} className="card-item">
-              <h3>{card.title}</h3>
+          {cards.map((card) => {
+            const isOwner = card.createdBy === currentPlayerName;
 
-              {/* Card preview grid */}
-              <div
-                className="card-preview"
-                style={{
-                  gridTemplateColumns: `repeat(${card.columns}, 1fr)`,
-                  gridTemplateRows: `repeat(${card.rows}, 1fr)`,
-                }}
-              >
-                {card.tiles.map((tile, index) => (
-                  <div
-                    key={index}
-                    className={`preview-tile ${!tile.value || !tile.value.trim() ? "empty" : ""}`}
-                    title={tile.value || "Empty"}
-                  >
-                    {tile.value && tile.value.trim() ? (
-                      <span>
-                        {tile.value.length > 12
-                          ? tile.value.substring(0, 12) + "..."
-                          : tile.value}
-                      </span>
-                    ) : (
-                      <span className="empty-marker">●</span>
-                    )}
-                  </div>
-                ))}
-              </div>
+            return (
+              <div key={card._id} className="card-item">
+                <h3>{card.title}</h3>
 
-              <div style={{ marginTop: "12px", marginBottom: "10px" }}>
-                {card.isPublished ? (
-                  <p
-                    style={{
-                      fontSize: "0.85rem",
-                      color: "#95a5a6",
-                    }}
-                  >
-                    ✓ Published on{" "}
-                    {new Date(card.publishedAt).toLocaleDateString()}
-                    {card.createdBy && (
-                      <span> • Created by {card.createdBy}</span>
-                    )}
-                  </p>
-                ) : (
-                  <div>
+                {/* Card preview grid */}
+                <div
+                  className="card-preview"
+                  style={{
+                    gridTemplateColumns: `repeat(${card.columns}, 1fr)`,
+                    gridTemplateRows: `repeat(${card.rows}, 1fr)`,
+                  }}
+                >
+                  {card.tiles.map((tile, index) => (
                     <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
+                      key={index}
+                      className={`preview-tile ${!tile.value || !tile.value.trim() ? "empty" : ""}`}
+                      title={tile.value || "Empty"}
                     >
-                      {card.tiles.filter((t) => !t.value || !t.value.trim())
-                        .length > 0 ? (
-                        <span className="status-badge incomplete">
-                          Incomplete
+                      {tile.value && tile.value.trim() ? (
+                        <span>
+                          {tile.value.length > 12
+                            ? tile.value.substring(0, 12) + "..."
+                            : tile.value}
                         </span>
                       ) : (
-                        <span className="status-badge complete">Complete</span>
+                        <span className="empty-marker">●</span>
                       )}
-                      <span style={{ fontSize: "0.85rem", color: "#95a5a6" }}>
-                        {
-                          card.tiles.filter((t) => t.value && t.value.trim())
-                            .length
-                        }
-                        /{card.tiles.length} filled
-                      </span>
                     </div>
-                    {card.createdBy && (
-                      <p
+                  ))}
+                </div>
+
+                <div style={{ marginTop: "12px", marginBottom: "10px" }}>
+                  {card.isPublished ? (
+                    <p
+                      style={{
+                        fontSize: "0.85rem",
+                        color: "#95a5a6",
+                      }}
+                    >
+                      ✓ Published on{" "}
+                      {new Date(card.publishedAt).toLocaleDateString()}
+                      {card.createdBy && (
+                        <span> • Created by {card.createdBy}</span>
+                      )}
+                    </p>
+                  ) : (
+                    <div>
+                      <div
                         style={{
-                          fontSize: "0.85rem",
-                          color: "#95a5a6",
-                          marginTop: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
                         }}
                       >
-                        Created by {card.createdBy}
-                      </p>
-                    )}
-                  </div>
-                )}
+                        {card.tiles.filter((t) => !t.value || !t.value.trim())
+                          .length > 0 ? (
+                          <span className="status-badge incomplete">
+                            Incomplete
+                          </span>
+                        ) : (
+                          <span className="status-badge complete">
+                            Complete
+                          </span>
+                        )}
+                        <span style={{ fontSize: "0.85rem", color: "#95a5a6" }}>
+                          {
+                            card.tiles.filter((t) => t.value && t.value.trim())
+                              .length
+                          }
+                          /{card.tiles.length} filled
+                        </span>
+                      </div>
+                      {card.createdBy && (
+                        <p
+                          style={{
+                            fontSize: "0.85rem",
+                            color: "#95a5a6",
+                            marginTop: "4px",
+                          }}
+                        >
+                          Created by {card.createdBy}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div
+                  className="button-group"
+                  style={{ justifyContent: "flex-start" }}
+                >
+                  {card.isPublished ? (
+                    <>
+                      <Link to={`/play/${card._id}`}>
+                        <button>Play</button>
+                      </Link>
+                      {isOwner && (
+                        <button
+                          className="warning"
+                          onClick={() => handleUnpublish(card._id)}
+                        >
+                          Unpublish
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {isOwner ? (
+                        <>
+                          <Link to={`/edit/${card._id}`}>
+                            <button>Edit</button>
+                          </Link>
+                          <button
+                            className="danger"
+                            onClick={() => handleDelete(card._id)}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      ) : (
+                        <p
+                          style={{
+                            fontSize: "0.9rem",
+                            color: "#95a5a6",
+                            fontStyle: "italic",
+                            margin: 0,
+                          }}
+                        >
+                          Only the owner can edit this card
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
-              <div
-                className="button-group"
-                style={{ justifyContent: "flex-start" }}
-              >
-                {card.isPublished ? (
-                  <>
-                    <Link to={`/play/${card._id}`}>
-                      <button>Play</button>
-                    </Link>
-                    <button
-                      className="warning"
-                      onClick={() => handleUnpublish(card._id)}
-                    >
-                      Unpublish
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link to={`/edit/${card._id}`}>
-                      <button>Edit</button>
-                    </Link>
-                    <button
-                      className="danger"
-                      onClick={() => handleDelete(card._id)}
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

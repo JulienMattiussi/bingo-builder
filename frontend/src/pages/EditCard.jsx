@@ -38,6 +38,16 @@ function EditCard() {
         return;
       }
 
+      // Check if current player is the owner
+      const currentPlayerName = playerNameUtils.getPlayerName();
+      if (data.createdBy && data.createdBy !== currentPlayerName) {
+        setError(
+          "You are not the owner of this card. Only the owner can edit it.",
+        );
+        setTimeout(() => navigate("/"), 3000);
+        return;
+      }
+
       setCard(data);
       setTitle(data.title);
       setRows(data.rows);
@@ -139,7 +149,8 @@ function EditCard() {
     try {
       setSaving(true);
       setError(null);
-      await api.publishCard(id);
+      const currentPlayerName = playerNameUtils.getPlayerName();
+      await api.publishCard(id, currentPlayerName);
       navigate("/");
     } catch (err) {
       setError(err.message);

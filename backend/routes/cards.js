@@ -72,6 +72,18 @@ router.put("/:id", async (req, res) => {
       return res.status(403).json({ message: "Cannot edit a published card" });
     }
 
+    // Check ownership
+    const { createdBy: requestCreatedBy } = req.body;
+    if (
+      card.createdBy &&
+      requestCreatedBy &&
+      card.createdBy !== requestCreatedBy
+    ) {
+      return res
+        .status(403)
+        .json({ message: "You are not the owner of this card" });
+    }
+
     const { title, createdBy, rows, columns, tiles } = req.body;
 
     if (title) card.title = title;
@@ -107,6 +119,14 @@ router.post("/:id/publish", async (req, res) => {
       return res.status(400).json({ message: "Card is already published" });
     }
 
+    // Check ownership
+    const { createdBy } = req.body;
+    if (card.createdBy && createdBy && card.createdBy !== createdBy) {
+      return res
+        .status(403)
+        .json({ message: "Only the owner can publish this card" });
+    }
+
     // Validate that all tiles are filled
     const emptyTiles = card.tiles.filter(
       (tile) => !tile.value || !tile.value.trim(),
@@ -138,6 +158,14 @@ router.post("/:id/unpublish", async (req, res) => {
       return res.status(400).json({ message: "Card is not published" });
     }
 
+    // Check ownership
+    const { createdBy } = req.body;
+    if (card.createdBy && createdBy && card.createdBy !== createdBy) {
+      return res
+        .status(403)
+        .json({ message: "Only the owner can unpublish this card" });
+    }
+
     card.isPublished = false;
     card.publishedAt = null;
     const unpublishedCard = await card.save();
@@ -159,6 +187,14 @@ router.delete("/:id", async (req, res) => {
       return res
         .status(403)
         .json({ message: "Cannot delete a published card" });
+    }
+
+    // Check ownership
+    const { createdBy } = req.query;
+    if (card.createdBy && createdBy && card.createdBy !== createdBy) {
+      return res
+        .status(403)
+        .json({ message: "Only the owner can delete this card" });
     }
 
     await card.deleteOne();

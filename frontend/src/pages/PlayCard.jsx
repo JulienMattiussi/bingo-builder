@@ -1,7 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
+import { createPeerConnection } from "../utils/peerConnection";
+import NotificationContainer from "../components/Notification";
+import PlayerList from "../components/PlayerList";
 
 function PlayCard() {
   const { id } = useParams();
@@ -12,6 +15,12 @@ function PlayCard() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [playerName, setPlayerName] = useState("");
+  const [notifications, setNotifications] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [isPeerConnected, setIsPeerConnected] = useState(false);
+
+  const peerConnectionRef = useRef(null);
+  const notificationIdRef = useRef(0);
 
   useEffect(() => {
     loadCard();
@@ -25,7 +34,63 @@ function PlayCard() {
       // Show name modal on first play
       setShowNameModal(true);
     }
+
+    // Cleanup peer connection on unmount
+    return () => {
+      if (peerConnectionRef.current) {
+        peerConnectionRef.current.disconnect();
+      }
+    };
   }, [id]);
+
+  // Initialize peer connection when both card and playerName are available
+  useEffect(() => {
+    if (card && playerName && !peerConnectionRef.current && !showNameModal) {
+      initializePeerConnection();
+    }
+  }, [card, playerName, showNameModal]);
+
+  const initializePeerConnection = async () => {
+    try {
+      console.log("[P2P] Initializing peer connection...");
+      const peerConnection = createPeerConnection();
+      peerConnectionRef.current = peerConnection;
+
+      // Set up callbacks BEFORE initializing
+      peerConnection.onNotification((notification) => {
+        console.log("[P2P] Received notification:", notification);
+        addNotification(notification);
+      });
+
+      peerConnection.onPlayerListUpdate((playerList) => {
+        console.log("[P2P] Player list updated:", playerList);
+        setPlayers(playerList);
+      });
+
+      // Initialize connection
+      console.log(
+        "[P2P] Calling initialize with cardId:",
+        id,
+        "playerName:",
+        playerName,
+      );
+      await peerConnection.initialize(id, playerName, checkedTiles.length);
+      setIsPeerConnected(true);
+      console.log("[P2P] Peer connection initialized successfully");
+    } catch (error) {
+      console.error("[P2P] Failed to initialize peer connection:", error);
+      // Continue without P2P functionality
+    }
+  };
+
+  const addNotification = (notification) => {
+    const id = notificationIdRef.current++;
+    setNotifications((prev) => [...prev, { ...notification, id }]);
+  };
+
+  const dismissNotification = (notificationId) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+  };
 
   const loadCard = async () => {
     try {
@@ -59,17 +124,33 @@ function PlayCard() {
   };
 
   const toggleTile = (position) => {
-    const newChecked = checkedTiles.includes(position)
+    const wasChecked = checkedTiles.includes(position);
+    const newChecked = wasChecked
       ? checkedTiles.filter((p) => p !== position)
       : [...checkedTiles, position];
 
     setCheckedTiles(newChecked);
     localStorage.setItem(`bingo-card-${id}`, JSON.stringify(newChecked));
 
-    // Check for bingo
-    if (!checkedTiles.includes(position) && card) {
+    // Broadcast tile changes to other players
+    if (peerConnectionRef.current) {
+      if (wasChecked) {
+        // Tile was unchecked
+        peerConnectionRef.current.broadcastTileUnvalidation(newChecked.length);
+      } else {
+        // Tile was checked
+        peerConnectionRef.current.broadcastTileValidation(newChecked.length);
+      }
+    }
+
+    // Check for bingo (only when checking a tile)
+    if (!wasChecked && card) {
       if (checkForBingo(newChecked, card.rows, card.columns)) {
         setShowCelebration(true);
+        // Broadcast win
+        if (peerConnectionRef.current) {
+          peerConnectionRef.current.broadcastWin();
+        }
       }
     }
   };
@@ -79,6 +160,11 @@ function PlayCard() {
       return;
     setCheckedTiles([]);
     localStorage.removeItem(`bingo-card-${id}`);
+
+    // Broadcast reset progress
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.broadcastTileValidation(0);
+    }
   };
 
   const copyShareLink = () => {
@@ -105,6 +191,11 @@ function PlayCard() {
 
   return (
     <div>
+      <NotificationContainer
+        notifications={notifications}
+        onDismiss={dismissNotification}
+      />
+
       {showNameModal && (
         <div className="modal-overlay">
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -163,50 +254,60 @@ function PlayCard() {
           </div>
         </div>
       )}
-      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <h1>{card.title}</h1>
-        <p style={{ color: "#7f8c8d", marginTop: "0.5rem" }}>
-          {checkedTiles.length} / {card.tiles.length} tiles checked
-        </p>
-      </div>
+      <div className="play-card-layout">
+        {isPeerConnected && players.length > 0 && (
+          <aside className="player-list-sidebar">
+            <PlayerList players={players} totalTiles={card.tiles.length} />
+          </aside>
+        )}
 
-      <div className="card">
-        <div
-          className="bingo-grid play-mode"
-          style={{
-            gridTemplateColumns: `repeat(${card.columns}, 1fr)`,
-            gridTemplateRows: `repeat(${card.rows}, 1fr)`,
-          }}
-        >
-          {card.tiles.map((tile) => (
+        <div className="play-card-main">
+          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+            <h1>{card.title}</h1>
+            <p style={{ color: "#7f8c8d", marginTop: "0.5rem" }}>
+              {checkedTiles.length} / {card.tiles.length} tiles checked
+            </p>
+          </div>
+
+          <div className="card">
             <div
-              key={tile.position}
-              className={`bingo-tile ${checkedTiles.includes(tile.position) ? "checked" : ""}`}
-              onClick={() => toggleTile(tile.position)}
+              className="bingo-grid play-mode"
+              style={{
+                gridTemplateColumns: `repeat(${card.columns}, 1fr)`,
+                gridTemplateRows: `repeat(${card.rows}, 1fr)`,
+              }}
             >
-              <span>{tile.value}</span>
+              {card.tiles.map((tile) => (
+                <div
+                  key={tile.position}
+                  className={`bingo-tile ${checkedTiles.includes(tile.position) ? "checked" : ""}`}
+                  onClick={() => toggleTile(tile.position)}
+                >
+                  <span>{tile.value}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="button-group" style={{ marginTop: "2rem" }}>
-          <button onClick={copyShareLink}>Share Link</button>
-          <button className="danger" onClick={resetCard}>
-            Reset
-          </button>
-        </div>
+            <div className="button-group" style={{ marginTop: "2rem" }}>
+              <button onClick={copyShareLink}>Share Link</button>
+              <button className="danger" onClick={resetCard}>
+                Reset
+              </button>
+            </div>
 
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: "1rem",
-            fontSize: "0.9rem",
-            color: "#95a5a6",
-          }}
-        >
-          Click on tiles to check them off. Your progress is saved in your
-          browser.
-        </p>
+            <p
+              style={{
+                textAlign: "center",
+                marginTop: "1rem",
+                fontSize: "0.9rem",
+                color: "#95a5a6",
+              }}
+            >
+              Click on tiles to check them off. Your progress is saved in your
+              browser.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

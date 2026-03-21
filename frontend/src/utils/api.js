@@ -48,9 +48,13 @@ export const api = {
   },
 
   // Publish a card
-  async publishCard(id) {
+  async publishCard(id, createdBy) {
     const response = await fetch(`${API_BASE_URL}/cards/${id}/publish`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ createdBy }),
     });
     if (!response.ok) {
       const error = await response.json();
@@ -60,9 +64,13 @@ export const api = {
   },
 
   // Unpublish a card
-  async unpublishCard(id) {
+  async unpublishCard(id, createdBy) {
     const response = await fetch(`${API_BASE_URL}/cards/${id}/unpublish`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ createdBy }),
     });
     if (!response.ok) {
       const error = await response.json();
@@ -72,11 +80,17 @@ export const api = {
   },
 
   // Delete a card
-  async deleteCard(id) {
-    const response = await fetch(`${API_BASE_URL}/cards/${id}`, {
+  async deleteCard(id, createdBy) {
+    const url = createdBy
+      ? `${API_BASE_URL}/cards/${id}?createdBy=${encodeURIComponent(createdBy)}`
+      : `${API_BASE_URL}/cards/${id}`;
+    const response = await fetch(url, {
       method: "DELETE",
     });
-    if (!response.ok) throw new Error("Failed to delete card");
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to delete card");
+    }
     return response.json();
   },
 
@@ -108,6 +122,64 @@ export const api = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || "Failed to update creator name");
+    }
+    return response.json();
+  },
+
+  // Peer discovery endpoints
+  async registerPeer(cardId, peerId, playerName, checkedCount = 0) {
+    const response = await fetch(`${API_BASE_URL}/peers/${cardId}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ peerId, playerName, checkedCount }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to register peer");
+    }
+    return response.json();
+  },
+
+  async getActivePeers(cardId, excludePeerId) {
+    let url = `${API_BASE_URL}/peers/${cardId}/peers`;
+    if (excludePeerId) {
+      url += `?excludePeerId=${encodeURIComponent(excludePeerId)}`;
+    }
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error("Failed to fetch active peers");
+    }
+    return response.json();
+  },
+
+  async unregisterPeer(cardId, peerId) {
+    const response = await fetch(
+      `${API_BASE_URL}/peers/${cardId}/unregister/${peerId}`,
+      {
+        method: "DELETE",
+      },
+    );
+    if (!response.ok) {
+      throw new Error("Failed to unregister peer");
+    }
+    return response.json();
+  },
+
+  async peerHeartbeat(cardId, peerId, checkedCount) {
+    const response = await fetch(
+      `${API_BASE_URL}/peers/${cardId}/heartbeat/${peerId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ checkedCount }),
+      },
+    );
+    if (!response.ok) {
+      throw new Error("Failed to send heartbeat");
     }
     return response.json();
   },
