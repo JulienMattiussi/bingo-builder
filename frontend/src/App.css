@@ -556,6 +556,11 @@ button.primary:hover:not(:disabled) {
   border: 2px dashed rgba(255, 255, 255, 0.5);
 }
 
+.preview-tile.checked {
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  color: white;
+}
+
 .preview-tile .empty-marker {
   color: rgba(255, 255, 255, 0.8);
   font-size: 1.2rem;

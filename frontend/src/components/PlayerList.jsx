@@ -35,9 +35,9 @@ function PlayerList({ players, totalTiles }) {
             >
               <div className="player-info">
                 <span className="player-name">
-                  {isCompleted && <span className="player-icon crown">👑</span>}
-                  {player.name}
                   {player.isMe && <span className="player-icon star">⭐</span>}
+                  {player.name}
+                  {isCompleted && <span className="player-icon crown">👑</span>}
                   {player.isMe && <span className="you-badge"> (You)</span>}
                 </span>
                 <span className="player-progress">
