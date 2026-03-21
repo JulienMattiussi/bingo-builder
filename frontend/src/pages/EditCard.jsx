@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
+import MobileActionBar from "../components/MobileActionBar";
+import CardNameModal from "../components/CardNameModal";
+import BingoGridControls from "../components/BingoGridControls";
+import BingoGridEditor from "../components/BingoGridEditor";
 
 function EditCard() {
   const { id } = useParams();
@@ -164,153 +168,36 @@ function EditCard() {
 
   return (
     <div>
-      {showNameModal && (
-        <div className="modal-overlay" onClick={() => setShowNameModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Welcome!</h2>
-            <p>Please enter your name to edit this card:</p>
-            <p
-              style={{
-                fontSize: "0.85rem",
-                color: "#95a5a6",
-                marginTop: "-0.5rem",
-              }}
-            >
-              (1-10 characters: letters, digits, -, _ only)
-            </p>
-            <input
-              type="text"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="Your name..."
-              maxLength={10}
-              className="modal-input"
-              autoFocus
-              onKeyPress={(e) => e.key === "Enter" && handleNameSubmit()}
-            />
-            <div className="modal-buttons">
-              <button onClick={() => setShowNameModal(false)}>Cancel</button>
-              <button className="success" onClick={handleNameSubmit}>
-                Continue
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CardNameModal
+        show={showNameModal}
+        playerName={playerName}
+        onPlayerNameChange={setPlayerName}
+        onSubmit={handleNameSubmit}
+        onCancel={() => setShowNameModal(false)}
+        message="Please enter your name to edit this card:"
+      />
 
       <h1 style={{ marginBottom: "1rem" }}>Edit Bingo Card</h1>
 
       {error && <div className="error">{error}</div>}
 
       <div className="card">
-        <div className="grid-controls">
-          <div className="dimension-control title-control">
-            <label>Card Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter card title..."
-              maxLength={100}
-              className="title-input"
-            />
-          </div>
+        <BingoGridControls
+          title={title}
+          onTitleChange={setTitle}
+          rows={rows}
+          columns={columns}
+          onGridSizeChange={handleGridSizeChange}
+          tiles={tiles}
+          statusBadgeType="incomplete"
+        />
 
-          <div className="dimension-control">
-            <label>Columns: {columns}</label>
-            <div className="button-group-inline">
-              <button
-                type="button"
-                className="btn-dimension"
-                onClick={() =>
-                  handleGridSizeChange(rows, Math.max(2, columns - 1))
-                }
-                disabled={columns <= 2}
-              >
-                −
-              </button>
-              <button
-                type="button"
-                className="btn-dimension"
-                onClick={() =>
-                  handleGridSizeChange(rows, Math.min(6, columns + 1))
-                }
-                disabled={columns >= 6}
-              >
-                +
-              </button>
-            </div>
-          </div>
-
-          <div className="dimension-control">
-            <label>Rows: {rows}</label>
-            <div className="button-group-inline">
-              <button
-                type="button"
-                className="btn-dimension"
-                onClick={() =>
-                  handleGridSizeChange(Math.max(2, rows - 1), columns)
-                }
-                disabled={rows <= 2}
-              >
-                −
-              </button>
-              <button
-                type="button"
-                className="btn-dimension"
-                onClick={() =>
-                  handleGridSizeChange(Math.min(5, rows + 1), columns)
-                }
-                disabled={rows >= 5}
-              >
-                +
-              </button>
-            </div>
-          </div>
-
-          <div className="dimension-control completion-control">
-            <div className="progress-container">
-              <div className="progress-text">
-                {tiles.filter((t) => !t.value.trim()).length > 0 ? (
-                  <span className="status-badge incomplete">Incomplete</span>
-                ) : (
-                  <span className="status-badge complete">Complete</span>
-                )}
-              </div>
-              <div className="progress-bar-wrapper">
-                <div
-                  className="progress-bar"
-                  style={{
-                    width: `${(tiles.filter((t) => t.value.trim()).length / tiles.length) * 100}%`,
-                  }}
-                />
-                <span className="progress-count">
-                  {tiles.filter((t) => t.value.trim()).length} / {tiles.length}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="bingo-grid"
-          style={{
-            gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            gridTemplateRows: `repeat(${rows}, 1fr)`,
-          }}
-        >
-          {tiles.map((tile, index) => (
-            <div key={index} className="bingo-tile">
-              <textarea
-                value={tile.value}
-                onChange={(e) => handleTileChange(index, e.target.value)}
-                placeholder={`Tile ${index + 1}`}
-                maxLength={40}
-                rows={3}
-              />
-            </div>
-          ))}
-        </div>
+        <BingoGridEditor
+          tiles={tiles}
+          rows={rows}
+          columns={columns}
+          onTileChange={handleTileChange}
+        />
 
         <div className="button-group">
           <button onClick={() => navigate("/")}>Cancel</button>
@@ -331,6 +218,37 @@ function EditCard() {
           </button>
         </div>
       </div>
+
+      {/* Mobile bottom action bar */}
+      <MobileActionBar
+        buttons={[
+          {
+            icon: "✕",
+            label: "Cancel",
+            onClick: () => navigate("/"),
+            ariaLabel: "Cancel and return to home",
+          },
+          {
+            icon: "💾",
+            label: saving ? "Saving..." : "Save",
+            onClick: handleSave,
+            disabled: saving,
+            ariaLabel: "Save changes",
+          },
+          {
+            icon: "✅",
+            label: saving ? "Publishing..." : "Publish",
+            onClick: handlePublish,
+            disabled: saving || tiles.filter((t) => !t.value.trim()).length > 0,
+            variant: "success",
+            ariaLabel: "Publish card",
+            title:
+              tiles.filter((t) => !t.value.trim()).length > 0
+                ? "Fill all tiles to publish"
+                : "",
+          },
+        ]}
+      />
     </div>
   );
 }

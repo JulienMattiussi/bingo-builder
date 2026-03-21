@@ -165,8 +165,6 @@
 /* Grid size display */
 .grid-size-display {
   padding: 0 var(--padding-lg);
-  border-left: 2px solid var(--color-gray-300);
-  border-right: 2px solid var(--color-gray-300);
 }
 
 .grid-size-info {
@@ -190,7 +188,6 @@
 /* Completion status display */
 .completion-control {
   padding: 0 var(--padding-lg);
-  border-left: 2px solid var(--color-gray-300);
   min-width: 200px;
 }
 
@@ -626,6 +623,16 @@ button.primary:hover:not(:disabled) {
   }
 }
 
+/* Default: dimension controls in a row (desktop) */
+.dimension-controls-row {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-xl);
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Mobile and tablet */
 @media (max-width: 768px) {
   .navbar {
@@ -697,14 +704,12 @@ button.primary:hover:not(:disabled) {
     padding: var(--spacing-sm) 0;
     border-left: none;
     border-right: none;
-    border-top: 2px solid var(--color-gray-300);
     width: 100%;
   }
 
   .completion-control {
     padding: var(--spacing-sm) 0;
     border-left: none;
-    border-top: 2px solid var(--color-gray-300);
     width: 100%;
     min-width: unset;
   }
@@ -849,6 +854,76 @@ button.primary:hover:not(:disabled) {
 
   .progress-info {
     font-size: var(--font-size-sm);
+  }
+
+  /* Mobile: Size controls on same row */
+  .dimension-controls-row {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: var(--spacing-sm);
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .dimension-controls-row .dimension-control {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .dimension-controls-row .grid-size-display {
+    flex: 0 0 auto;
+    min-width: 50px;
+    max-width: 70px;
+    padding: 0;
+    border: none;
+  }
+
+  .dimension-controls-row .grid-size-display label {
+    display: none;
+  }
+
+  .dimension-controls-row .grid-size-display .grid-size-info {
+    margin-top: 0;
+    font-size: var(--font-size-base);
+    gap: 2px;
+  }
+
+  .dimension-controls-row .grid-size-display .tile-count {
+    font-size: 0.65rem;
+  }
+
+  .dimension-controls-row .completion-control {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    padding: 0;
+    border-left: none;
+  }
+
+  .dimension-controls-row .completion-control label {
+    display: none;
+  }
+
+  .dimension-controls-row .completion-control .progress-container {
+    gap: 2px;
+  }
+
+  .dimension-controls-row .completion-control .progress-text {
+    font-size: var(--font-size-xs);
+  }
+
+  .dimension-controls-row .completion-control .status-badge {
+    font-size: 0.6rem;
+    padding: 0.1rem var(--padding-xs);
+  }
+
+  .dimension-controls-row .completion-control .progress-bar-wrapper {
+    height: 18px;
+  }
+
+  .dimension-controls-row .completion-control .progress-count {
+    font-size: 0.65rem;
   }
 }
 
@@ -1898,6 +1973,14 @@ button.primary:hover:not(:disabled) {
     background: var(--color-danger-dark);
   }
 
+  .mobile-action-btn.success {
+    background: var(--color-success);
+  }
+
+  .mobile-action-btn.success:active {
+    background: var(--color-success-dark);
+  }
+
   /* Add bottom padding to play card main to account for fixed action bar */
   .play-card-main {
     padding-bottom: calc(
@@ -1908,6 +1991,17 @@ button.primary:hover:not(:disabled) {
   /* Hide the desktop button group on mobile */
   .play-card-main .button-group {
     display: none;
+  }
+
+  /* Hide desktop button-group on create/edit pages, add padding for fixed action bar */
+  .card .button-group {
+    display: none;
+  }
+
+  .card {
+    padding-bottom: calc(
+      var(--touch-target-comfortable) + var(--spacing-md) * 3
+    );
   }
 }
 

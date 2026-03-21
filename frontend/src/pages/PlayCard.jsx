@@ -5,6 +5,7 @@ import { playerNameUtils } from "../utils/playerName";
 import { createPeerConnection } from "../utils/peerConnection";
 import NotificationContainer from "../components/Notification";
 import PlayerList from "../components/PlayerList";
+import MobileActionBar from "../components/MobileActionBar";
 
 function PlayCard() {
   const { id } = useParams();
@@ -355,31 +356,37 @@ function PlayCard() {
       </div>
 
       {/* Mobile bottom action bar - fixed at bottom on mobile */}
-      <div className="mobile-action-bar">
-        {isPeerConnected && (
-          <button
-            className={`mobile-action-btn ${isPlayerListOpen ? "active" : ""}`}
-            onClick={() => setIsPlayerListOpen(!isPlayerListOpen)}
-            aria-label={
-              isPlayerListOpen ? "Hide player list" : "Show player list"
-            }
-            aria-expanded={isPlayerListOpen}
-          >
-            <span className="btn-icon">👥</span>
-            <span className="btn-label">
-              Players {isPlayerListOpen ? "▼" : "▲"}
-            </span>
-          </button>
-        )}
-        <button className="mobile-action-btn" onClick={copyShareLink}>
-          <span className="btn-icon">🔗</span>
-          <span className="btn-label">Share</span>
-        </button>
-        <button className="mobile-action-btn danger" onClick={resetCard}>
-          <span className="btn-icon">↻</span>
-          <span className="btn-label">Reset</span>
-        </button>
-      </div>
+      <MobileActionBar
+        buttons={[
+          ...(isPeerConnected
+            ? [
+                {
+                  icon: "👥",
+                  label: `Players ${isPlayerListOpen ? "▼" : "▲"}`,
+                  onClick: () => setIsPlayerListOpen(!isPlayerListOpen),
+                  active: isPlayerListOpen,
+                  ariaLabel: isPlayerListOpen
+                    ? "Hide player list"
+                    : "Show player list",
+                  ariaExpanded: isPlayerListOpen,
+                },
+              ]
+            : []),
+          {
+            icon: "🔗",
+            label: "Share",
+            onClick: copyShareLink,
+            ariaLabel: "Share card link",
+          },
+          {
+            icon: "↻",
+            label: "Reset",
+            onClick: resetCard,
+            variant: "danger",
+            ariaLabel: "Reset card progress",
+          },
+        ]}
+      />
 
       {/* Mobile tile viewer modal */}
       {selectedTile && (
