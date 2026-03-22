@@ -1,8 +1,8 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 
 test.describe("Play Card Flow", () => {
   // Helper to create a test card
-  async function createTestCard(page) {
+  async function createTestCard(page: Page) {
     await page.goto("/create");
 
     // Set player name if prompted
