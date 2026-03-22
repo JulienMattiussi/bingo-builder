@@ -82,12 +82,12 @@ function PlayCard() {
       peerConnectionRef.current = peerConnection;
 
       // Set up callbacks BEFORE initializing
-      peerConnection.onNotification((notification: any) => {
+      peerConnection.onNotification((notification) => {
         console.log("[P2P] Received notification:", notification);
         addNotification(notification);
       });
 
-      peerConnection.onPlayerListUpdate((playerList: any) => {
+      peerConnection.onPlayerListUpdate((playerList) => {
         console.log("[P2P] Player list updated:", playerList);
         setPlayers(playerList);
       });
@@ -108,7 +108,9 @@ function PlayCard() {
     }
   };
 
-  const addNotification = (notification: any) => {
+  const addNotification = (
+    notification: Omit<NotificationWithLocalId, "id">,
+  ) => {
     const localId = notificationIdRef.current++;
     const notif: NotificationWithLocalId = {
       ...notification,

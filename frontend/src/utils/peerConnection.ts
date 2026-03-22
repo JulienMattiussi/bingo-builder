@@ -1,7 +1,14 @@
 import Peer, { DataConnection } from "peerjs";
 import { api } from "./api";
+import { PeerMessage, PlayerData } from "../types/models";
 
 const MAX_PEERS = 6;
+
+interface PeerNotification {
+  type: "tile-validated" | "tile-unvalidated" | "player-won";
+  playerName: string;
+  message: string;
+}
 
 class PeerConnectionManager {
   peer: Peer | null;
@@ -10,8 +17,8 @@ class PeerConnectionManager {
   playerName: string | null;
   myPeerId?: string;
   playerProgress: Map<string, { name: string; checkedCount: number }>;
-  onNotificationCallback: ((notification: any) => void) | null;
-  onPlayerListUpdateCallback: ((playerList: any) => void) | null;
+  onNotificationCallback: ((notification: PeerNotification) => void) | null;
+  onPlayerListUpdateCallback: ((playerList: PlayerData[]) => void) | null;
   heartbeatInterval: NodeJS.Timeout | null;
 
   constructor() {
@@ -97,17 +104,23 @@ class PeerConnectionManager {
       console.log(`Discovered ${peers.length} active peers:`, peers);
 
       // Connect to each discovered peer
-      peers.forEach((peer: any) => {
-        if (
-          !this.connections.has(peer.peerId) &&
-          this.connections.size < MAX_PEERS
-        ) {
-          console.log(
-            `Attempting to connect to peer: ${peer.peerId} (${peer.playerName})`,
-          );
-          this.connectToPeer(peer.peerId);
-        }
-      });
+      peers.forEach(
+        (peer: {
+          peerId: string;
+          playerName: string;
+          checkedCount: number;
+        }) => {
+          if (
+            !this.connections.has(peer.peerId) &&
+            this.connections.size < MAX_PEERS
+          ) {
+            console.log(
+              `Attempting to connect to peer: ${peer.peerId} (${peer.playerName})`,
+            );
+            this.connectToPeer(peer.peerId);
+          }
+        },
+      );
     } catch (error) {
       console.error("Failed to discover peers:", error);
     }
@@ -179,8 +192,8 @@ class PeerConnectionManager {
       });
     });
 
-    conn.on("data", (data: any) => {
-      this.handleMessage(conn.peer, data);
+    conn.on("data", (data: unknown) => {
+      this.handleMessage(conn.peer, data as PeerMessage);
     });
 
     conn.on("close", () => {
@@ -190,7 +203,7 @@ class PeerConnectionManager {
       this.notifyPlayerListUpdate();
     });
 
-    conn.on("error", (error: any) => {
+    conn.on("error", (error: Error) => {
       console.error("Connection error with peer:", conn.peer, error);
       this.connections.delete(conn.peer);
       this.playerProgress.delete(conn.peer);
@@ -199,7 +212,7 @@ class PeerConnectionManager {
   }
 
   // Handle incoming messages from peers
-  handleMessage(peerId: string, data: any) {
+  handleMessage(peerId: string, data: PeerMessage) {
     console.log("Received message from", peerId, ":", data);
 
     switch (data.type) {
@@ -213,7 +226,7 @@ class PeerConnectionManager {
         // Send our state back
         this.sendMessage(peerId, {
           type: "player-state",
-          playerName: this.playerName,
+          playerName: this.playerName || "",
           peerId: this.myPeerId,
           checkedCount:
             this.playerProgress.get(this.myPeerId!)?.checkedCount || 0,
@@ -273,7 +286,7 @@ class PeerConnectionManager {
   }
 
   // Send a message to a specific peer or all peers
-  sendMessage(peerId: string | null, message: any) {
+  sendMessage(peerId: string | null, message: PeerMessage) {
     if (peerId) {
       const conn = this.connections.get(peerId);
       if (conn && conn.open) {
@@ -302,7 +315,7 @@ class PeerConnectionManager {
 
     this.sendMessage(null, {
       type: "tile-validated",
-      playerName: this.playerName,
+      playerName: this.playerName || "",
       checkedCount,
     });
 
@@ -329,7 +342,7 @@ class PeerConnectionManager {
 
     this.sendMessage(null, {
       type: "tile-unvalidated",
-      playerName: this.playerName,
+      playerName: this.playerName || "",
       checkedCount,
     });
 
@@ -347,7 +360,8 @@ class PeerConnectionManager {
   broadcastWin() {
     this.sendMessage(null, {
       type: "player-won",
-      playerName: this.playerName,
+      playerName: this.playerName || "",
+      checkedCount: 0,
     });
   }
 
@@ -369,12 +383,12 @@ class PeerConnectionManager {
   }
 
   // Set callback for notifications
-  onNotification(callback: (notification: any) => void) {
+  onNotification(callback: (notification: PeerNotification) => void) {
     this.onNotificationCallback = callback;
   }
 
   // Set callback for player list updates
-  onPlayerListUpdate(callback: (playerList: any) => void) {
+  onPlayerListUpdate(callback: (playerList: PlayerData[]) => void) {
     this.onPlayerListUpdateCallback = callback;
   }
 

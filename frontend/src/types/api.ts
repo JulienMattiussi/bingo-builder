@@ -26,12 +26,12 @@ export interface CreateCardResponse {
   isPublished: boolean;
 }
 
-export interface GetCardsResponse extends Array<Card> {}
+export type GetCardsResponse = Card[];
 
-export interface GetCardResponse extends Card {}
+export type GetCardResponse = Card;
 
 export interface DeleteCardResponse {
   message: string;
 }
 
-export interface UnpublishCardResponse extends Card {}
+export type UnpublishCardResponse = Card;

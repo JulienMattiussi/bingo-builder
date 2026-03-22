@@ -56,19 +56,30 @@ interface NotificationContainerProps<T extends { id: string | number }> {
   onDismiss: (id: string | number) => void;
 }
 
-function NotificationContainer<T extends { id: string | number }>({
-  notifications,
-  onDismiss,
-}: NotificationContainerProps<T>) {
+function NotificationContainer<
+  T extends {
+    id: string | number;
+    type: string;
+    playerName: string;
+    message: string;
+    tilePosition?: number;
+  },
+>({ notifications, onDismiss }: NotificationContainerProps<T>) {
   return (
     <div className="notification-container">
-      {notifications.map((notification) => (
-        <Notification
-          key={notification.id}
-          notification={notification as any}
-          onClose={() => onDismiss(notification.id)}
-        />
-      ))}
+      {notifications.map((notification) => {
+        const notif: NotificationType = {
+          ...(notification as unknown as NotificationType),
+          id: String(notification.id),
+        };
+        return (
+          <Notification
+            key={notification.id}
+            notification={notif}
+            onClose={() => onDismiss(notification.id)}
+          />
+        );
+      })}
     </div>
   );
 }

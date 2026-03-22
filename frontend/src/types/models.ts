@@ -24,7 +24,7 @@ export interface CardProgress {
 
 export interface Notification {
   id: string;
-  type: "tile-checked" | "tile-unvalidated" | "player-won";
+  type: "tile-checked" | "tile-unvalidated" | "tile-validated" | "player-won";
   playerName: string;
   message: string;
   tilePosition?: number;
@@ -43,4 +43,23 @@ export interface PlayerInfo {
   name: string;
   checkedTiles: number[];
   isWinner: boolean;
+}
+
+export interface PeerMessage {
+  type:
+    | "player-join"
+    | "player-state"
+    | "tile-validated"
+    | "tile-unvalidated"
+    | "player-won";
+  playerName: string;
+  peerId?: string;
+  checkedCount: number;
+}
+
+export interface PlayerData {
+  peerId: string;
+  name: string;
+  checkedCount: number;
+  isMe: boolean;
 }
