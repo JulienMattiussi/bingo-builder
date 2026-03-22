@@ -25,6 +25,15 @@ test.describe("Play Card Flow", () => {
 
     // Save the card
     await page.getByRole("button", { name: /save card/i }).click();
+
+    // Name modal may appear again if creating first card
+    const nameModalInput = page.getByPlaceholder(/your name/i);
+    if (await nameModalInput.isVisible({ timeout: 2000 })) {
+      await nameModalInput.fill("E2EPlayer");
+      await page.getByRole("button", { name: /continue/i }).click();
+    }
+
+    // Should redirect to home
     await page.waitForURL(/.*\/(home|$)/, { timeout: 10000 });
   }
 
