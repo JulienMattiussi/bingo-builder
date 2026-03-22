@@ -1,6 +1,7 @@
+import config from "../config";
+
 const PLAYER_NAME_KEY = "bingo-player-name";
-const MAX_PLAYER_NAME_LENGTH =
-  Number(import.meta.env.VITE_PLAYER_NAME_MAX_LENGTH) || 10;
+const MAX_PLAYER_NAME_LENGTH = config.playerNameMaxLength;
 
 export const playerNameUtils = {
   // Validate player name format

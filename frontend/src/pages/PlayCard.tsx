@@ -7,6 +7,7 @@ import NotificationContainer from "../components/Notification";
 import PlayerList from "../components/PlayerList";
 import MobileActionBar from "../components/MobileActionBar";
 import { Card, Tile, Notification, PlayerData } from "../types/models";
+import config from "../config";
 
 interface NotificationWithLocalId extends Omit<Notification, "id"> {
   id: number;
@@ -250,9 +251,7 @@ function PlayCard() {
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               placeholder="Your name..."
-              maxLength={
-                Number(import.meta.env.VITE_PLAYER_NAME_MAX_LENGTH) || 10
-              }
+              maxLength={config.playerNameMaxLength}
               className="modal-input"
               autoFocus
               onKeyPress={(e) => e.key === "Enter" && handleNameSubmit()}

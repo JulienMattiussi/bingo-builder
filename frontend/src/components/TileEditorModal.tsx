@@ -4,6 +4,7 @@
  */
 import { useState, useEffect, FormEvent } from "react";
 import { Tile } from "../types/models";
+import config from "../config";
 
 interface TileEditorModalProps {
   tile: Tile | null;
@@ -46,7 +47,7 @@ function TileEditorModal({ tile, onSave, onClose }: TileEditorModalProps) {
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder={`Tile ${tile.position + 1}`}
-              maxLength={Number(import.meta.env.VITE_TILE_MAX_LENGTH) || 40}
+              maxLength={config.tileMaxLength}
               rows={6}
               autoFocus
               className="tile-editor-textarea"

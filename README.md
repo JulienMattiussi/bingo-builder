@@ -158,6 +158,15 @@ If you prefer to install MongoDB locally instead of using Docker:
 
 ### Manual Setup
 
+#### Initial Setup
+
+1. Create environment configuration (at project root):
+```bash
+cp .env.example .env
+```
+
+2. Update the `.env` file with your configuration if needed (defaults should work for local development).
+
 #### Backend Setup
 
 1. Navigate to the backend directory:
@@ -170,21 +179,7 @@ cd backend
 npm install
 ```
 
-3. Create a `.env` file:
-```bash
-cp .env.example .env
-```
-
-4. Update the `.env` file with your configuration:
-```env
-# Backend Server Port
-PORT=3001
-
-# MongoDB Connection URI
-MONGDB_URI=mongodb://localhost:27017/bingo-builder
-```
-
-5. Start the backend server:
+3. Start the backend server:
 ```bash
 npm run dev
 ```
@@ -203,28 +198,40 @@ cd frontend
 npm install
 ```
 
-3. Create a `.env` file:
-```bash
-cp .env.example .env
-```
-
-4. (Optional) Update the `.env` file to customize ports:
-```env
-# Frontend Dev Server Port
-VITE_PORT=3000
-
-# Backend API Port (must match backend PORT)
-VITE_API_PORT=3001
-```
-
-5. Start the development server:
+3. Start the development server:
 ```bash
 npm run dev
 ```
 
-The frontend will run on `http://localhost:3000` (or the port specified in `.env`)
+The frontend will run on `http://localhost:3000` (or the port specified in root `.env`)
 
 ## Configuration
+
+This project uses **Convict** (backend) and a custom validation system (frontend) for centralized environment variable management with schema validation.
+
+### Quick Overview
+
+All configuration is stored in a single `.env` file at the root of the project:
+
+**Backend-only Variables (security-sensitive):**
+- `MONGODB_URI` - MongoDB connection string
+- `MONGODB_TEST_URI` - Test database URI
+
+**Shared Variables (VITE_ prefix - used by both frontend and backend):**
+- `VITE_API_PORT` - Backend server port (default: 3001)
+- `VITE_PORT` - Frontend dev server port (default: 3000)
+- `VITE_CARD_TITLE_MAX_LENGTH`, `VITE_TILE_MAX_LENGTH`, etc. - Application limits
+
+> **Why VITE_ prefix?** Vite only exposes `VITE_` prefixed variables to the client. By using this prefix for shared config, both frontend and backend can read the same variables without duplication.
+
+### Complete Documentation
+
+See [Documentation/CONFIGURATION.md](Documentation/CONFIGURATION.md) for:
+- Complete configuration schema
+- Type-safe configuration access
+- Validation and error handling
+- Adding new configuration values
+- Testing with different configurations
 
 ### Port Configuration
 
@@ -242,18 +249,15 @@ The application uses environment variables to configure server ports:
 
 ### Changing Default Ports
 
-To run on different ports, update both `.env` files:
+To run on different ports, update the root `.env` file:
 
 ```bash
-# backend/.env
-PORT=4001
-
-# frontend/.env
-VITE_PORT=4000
-VITE_API_PORT=4001
+# .env (at project root)
+VITE_API_PORT=4001     # Backend server port
+VITE_PORT=4000         # Frontend dev server port
 ```
 
-Then restart both servers.
+Then restart both servers. No need to keep ports in sync manually - they're defined once!
 
 ## Usage
 

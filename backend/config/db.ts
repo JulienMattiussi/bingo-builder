@@ -1,27 +1,17 @@
 import mongoose from "mongoose";
+import config from "./config.js";
 
 const connectDB = async () => {
   try {
     // For E2E and unit tests, always use test database on separate port
-    // This takes precedence over MONGODB_URI from .env file
-    let dbUri;
-
-    if (process.env.NODE_ENV === "test") {
-      // Priority: MONGODB_TEST_URI > MONGODB_URI (if port 27018) > default test URI
-      if (process.env.MONGODB_TEST_URI) {
-        dbUri = process.env.MONGODB_TEST_URI;
-      } else if (process.env.MONGODB_URI?.includes("27018")) {
-        dbUri = process.env.MONGODB_URI;
-      } else {
-        dbUri = "mongodb://localhost:27018/bingo-test";
-      }
-    } else {
-      dbUri = process.env.MONGODB_URI || "mongodb://localhost:27017/bingo";
-    }
+    const dbUri =
+      config.get("env") === "test"
+        ? config.get("database.testUri")
+        : config.get("database.uri");
 
     const conn = await mongoose.connect(dbUri);
     console.log(
-      `MongoDB Connected: ${conn.connection.host} (${conn.connection.name}) [ENV: ${process.env.NODE_ENV || "development"}]`,
+      `MongoDB Connected: ${conn.connection.host} (${conn.connection.name}) [ENV: ${config.get("env")}]`,
     );
   } catch (error) {
     console.error(`Error: ${(error as Error).message}`);

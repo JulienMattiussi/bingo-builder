@@ -3,6 +3,7 @@
  * Editable grid of bingo tiles
  */
 import { Tile } from "../types/models";
+import config from "../config";
 
 interface BingoGridEditorProps {
   tiles: Tile[];
@@ -46,7 +47,7 @@ function BingoGridEditor({
             value={tile.value}
             onChange={(e) => onTileChange(index, e.target.value)}
             placeholder={`Tile ${index + 1}`}
-            maxLength={Number(import.meta.env.VITE_TILE_MAX_LENGTH) || 40}
+            maxLength={config.tileMaxLength}
             rows={3}
             readOnly={onTileClick && isMobile()}
           />

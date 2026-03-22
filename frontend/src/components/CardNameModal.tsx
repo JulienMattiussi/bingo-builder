@@ -3,6 +3,7 @@
  * Modal for collecting player name before creating/editing a card
  */
 import { KeyboardEvent } from "react";
+import config from "../config";
 
 interface CardNameModalProps {
   show: boolean;
@@ -42,7 +43,7 @@ function CardNameModal({
           value={playerName}
           onChange={(e) => onPlayerNameChange(e.target.value)}
           placeholder="Your name..."
-          maxLength={Number(import.meta.env.VITE_PLAYER_NAME_MAX_LENGTH) || 10}
+          maxLength={config.playerNameMaxLength}
           className="modal-input"
           autoFocus
           onKeyPress={(e: KeyboardEvent<HTMLInputElement>) =>

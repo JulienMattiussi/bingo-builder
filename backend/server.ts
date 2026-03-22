@@ -1,19 +1,12 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import cardRoutes from "./routes/cards.js";
 import peerRoutes from "./routes/peers.js";
-
-// Only load .env file in non-test environments
-// This prevents .env from overriding test environment variables
-if (process.env.NODE_ENV !== "test") {
-  // Load .env from root directory (one level up)
-  dotenv.config({ path: "../.env" });
-}
+import config from "./config/config.js";
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = config.get("server.port");
 
 // Connect to MongoDB
 connectDB();

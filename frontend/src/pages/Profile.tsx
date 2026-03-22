@@ -6,6 +6,7 @@ import { useCardProgress } from "../hooks/useCardProgress";
 import BingoCardItem from "../components/BingoCardItem";
 import PlayedCardItem from "../components/PlayedCardItem";
 import { Card } from "../types/models";
+import config from "../config";
 
 function Profile() {
   const navigate = useNavigate();
@@ -220,9 +221,7 @@ function Profile() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Enter new name..."
-                maxLength={
-                  Number(import.meta.env.VITE_PLAYER_NAME_MAX_LENGTH) || 10
-                }
+                maxLength={config.playerNameMaxLength}
                 className="title-input"
                 autoFocus
                 onKeyPress={(e) => e.key === "Enter" && handleUpdateName()}

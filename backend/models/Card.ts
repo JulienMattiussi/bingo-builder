@@ -12,13 +12,15 @@ const tileSchema = new mongoose.Schema({
   },
 });
 
+import config from "../config/config.js";
+
 const cardSchema = new mongoose.Schema(
   {
     title: {
       type: String,
       required: true,
       trim: true,
-      maxlength: Number(process.env.CARD_TITLE_MAX_LENGTH) || 25,
+      maxlength: config.get("limits.cardTitleMaxLength"),
     },
     createdBy: {
       type: String,

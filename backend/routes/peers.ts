@@ -1,4 +1,5 @@
 import express from "express";
+import config from "../config/config.js";
 
 const router = express.Router();
 
@@ -48,7 +49,7 @@ router.post("/:cardId/register", (req, res) => {
   const cardPeers = activePeers.get(cardId)!;
 
   // Check if we've reached max peers (excluding the registering peer)
-  const maxPlayers = Number(process.env.MAX_PLAYERS_PER_CARD) || 6;
+  const maxPlayers = config.get("limits.maxPlayersPerCard");
   if (!cardPeers.has(peerId) && cardPeers.size >= maxPlayers) {
     return res
       .status(429)

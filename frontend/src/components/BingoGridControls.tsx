@@ -3,6 +3,7 @@
  * Controls for editing grid dimensions, title, and showing progress
  */
 import { Tile } from "../types/models";
+import config from "../config";
 
 interface BingoGridControlsProps {
   title: string;
@@ -36,7 +37,7 @@ function BingoGridControls({
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="Enter card title..."
-          maxLength={Number(import.meta.env.VITE_CARD_TITLE_MAX_LENGTH) || 25}
+          maxLength={config.cardTitleMaxLength}
           className="title-input"
         />
       </div>

@@ -1,4 +1,5 @@
 import { PlayerData } from "../types/models";
+import config from "../config";
 
 interface PlayerListProps {
   players: PlayerData[];
@@ -61,11 +62,9 @@ function PlayerList({ players, totalTiles }: PlayerListProps) {
           );
         })}
       </div>
-      {players.length >=
-        Number(import.meta.env.VITE_MAX_PLAYERS_PER_CARD || 6) && (
+      {players.length >= config.maxPlayersPerCard && (
         <p className="player-list-note">
-          Maximum players reached (
-          {import.meta.env.VITE_MAX_PLAYERS_PER_CARD || 6})
+          Maximum players reached ({config.maxPlayersPerCard})
         </p>
       )}
     </div>
