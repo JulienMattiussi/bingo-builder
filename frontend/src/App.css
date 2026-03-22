@@ -775,12 +775,18 @@ button.primary:hover:not(:disabled) {
     font-size: 16px;
   }
 
+  .celebration-content {
+    padding: 0 var(--spacing-md);
+    max-width: 90%;
+  }
+
   .celebration-text {
-    font-size: 2.5rem;
+    font-size: 1.3rem;
+    word-break: break-word;
   }
 
   .celebration-subtext {
-    font-size: 1.25rem;
+    font-size: 0.95rem;
   }
 
   .celebration-button {
@@ -1010,12 +1016,18 @@ button.primary:hover:not(:disabled) {
     font-size: 1.1rem;
   }
 
+  .celebration-content {
+    padding: 0 var(--spacing-sm);
+    max-width: 95%;
+  }
+
   .celebration-text {
-    font-size: 2rem;
+    font-size: 1.8rem;
+    word-break: break-word;
   }
 
   .celebration-subtext {
-    font-size: 1rem;
+    font-size: 0.85rem;
     margin-bottom: var(--spacing-md);
   }
 
@@ -1136,6 +1148,39 @@ button.primary:hover:not(:disabled) {
 .celebration-button:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+/* Mobile celebration text overrides */
+@media (max-width: 768px) {
+  .celebration-content {
+    padding: 0 var(--spacing-md);
+    max-width: 90%;
+  }
+
+  .celebration-text {
+    font-size: 2rem !important;
+    word-break: break-word;
+  }
+
+  .celebration-subtext {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .celebration-content {
+    padding: 0 var(--spacing-sm);
+    max-width: 95%;
+  }
+
+  .celebration-text {
+    font-size: 1.8rem !important;
+    word-break: break-word;
+  }
+
+  .celebration-subtext {
+    font-size: 0.85rem;
+  }
 }
 
 /* Fireworks container */
