@@ -1,4 +1,18 @@
-function BingoCardPreview({ tiles, rows, columns, checkedTiles = [] }) {
+import { Tile } from "../types/models";
+
+interface BingoCardPreviewProps {
+  tiles: Tile[];
+  rows: number;
+  columns: number;
+  checkedTiles?: number[];
+}
+
+function BingoCardPreview({
+  tiles,
+  rows,
+  columns,
+  checkedTiles = [],
+}: BingoCardPreviewProps) {
   return (
     <div
       className="card-preview"

@@ -1,4 +1,14 @@
 import { Link } from "react-router-dom";
+import { Card } from "../types/models";
+
+interface CardActionsProps {
+  card: Card;
+  isOwner: boolean;
+  isPlayed: boolean;
+  onDelete?: (id: string) => void;
+  onUnpublish?: (id: string) => void;
+  compact?: boolean;
+}
 
 function CardActions({
   card,
@@ -7,7 +17,7 @@ function CardActions({
   onDelete,
   onUnpublish,
   compact = false,
-}) {
+}: CardActionsProps) {
   const buttonClassName = compact ? "button-compact" : "";
 
   if (card.isPublished) {

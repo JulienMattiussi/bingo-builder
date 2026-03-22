@@ -4,12 +4,12 @@ import Card from "../models/Card.js";
 const router = express.Router();
 
 // Get all cards
-router.get("/", async (req, res) => {
+router.get("/", async (_req, res) => {
   try {
     const cards = await Card.find().sort({ createdAt: -1 });
     res.json(cards);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 
@@ -22,7 +22,7 @@ router.get("/:id", async (req, res) => {
     }
     res.json(card);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 
@@ -55,7 +55,7 @@ router.post("/", async (req, res) => {
     const newCard = await card.save();
     res.status(201).json(newCard);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: (error as Error).message });
   }
 });
 
@@ -103,7 +103,7 @@ router.put("/:id", async (req, res) => {
     const updatedCard = await card.save();
     res.json(updatedCard);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: (error as Error).message });
   }
 });
 
@@ -142,7 +142,7 @@ router.post("/:id/publish", async (req, res) => {
     const publishedCard = await card.save();
     res.json(publishedCard);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 
@@ -171,7 +171,7 @@ router.post("/:id/unpublish", async (req, res) => {
     const unpublishedCard = await card.save();
     res.json(unpublishedCard);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 
@@ -200,7 +200,7 @@ router.delete("/:id", async (req, res) => {
     await card.deleteOne();
     res.json({ message: "Card deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 
@@ -221,7 +221,7 @@ router.post("/delete-by-creator", async (req, res) => {
       deletedCount: result.deletedCount,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 
@@ -247,7 +247,7 @@ router.post("/update-creator", async (req, res) => {
       modifiedCount: result.modifiedCount,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 

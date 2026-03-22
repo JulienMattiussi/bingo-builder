@@ -1,9 +1,19 @@
-import Peer from "peerjs";
+import Peer, { DataConnection } from "peerjs";
 import { api } from "./api";
 
 const MAX_PEERS = 6;
 
 class PeerConnectionManager {
+  peer: Peer | null;
+  connections: Map<string, DataConnection>;
+  cardId: string | null;
+  playerName: string | null;
+  myPeerId?: string;
+  playerProgress: Map<string, { name: string; checkedCount: number }>;
+  onNotificationCallback: ((notification: any) => void) | null;
+  onPlayerListUpdateCallback: ((playerList: any) => void) | null;
+  heartbeatInterval: NodeJS.Timeout | null;
+
   constructor() {
     this.peer = null;
     this.connections = new Map(); // peerId -> connection
@@ -16,7 +26,11 @@ class PeerConnectionManager {
   }
 
   // Initialize peer connection for a specific card
-  async initialize(cardId, playerName, initialCheckedCount = 0) {
+  async initialize(
+    cardId: string,
+    playerName: string,
+    initialCheckedCount = 0,
+  ) {
     this.cardId = cardId;
     this.playerName = playerName;
 
@@ -79,11 +93,11 @@ class PeerConnectionManager {
   async discoverPeers() {
     try {
       // Fetch active peers from backend
-      const { peers } = await api.getActivePeers(this.cardId, this.myPeerId);
+      const { peers } = await api.getActivePeers(this.cardId!, this.myPeerId);
       console.log(`Discovered ${peers.length} active peers:`, peers);
 
       // Connect to each discovered peer
-      peers.forEach((peer) => {
+      peers.forEach((peer: any) => {
         if (
           !this.connections.has(peer.peerId) &&
           this.connections.size < MAX_PEERS
@@ -108,8 +122,8 @@ class PeerConnectionManager {
     this.heartbeatInterval = setInterval(async () => {
       try {
         const checkedCount =
-          this.playerProgress.get(this.myPeerId)?.checkedCount || 0;
-        await api.peerHeartbeat(this.cardId, this.myPeerId, checkedCount);
+          this.playerProgress.get(this.myPeerId!)?.checkedCount || 0;
+        await api.peerHeartbeat(this.cardId!, this.myPeerId!, checkedCount);
 
         // Also re-discover peers periodically
         this.discoverPeers();
@@ -120,7 +134,7 @@ class PeerConnectionManager {
   }
 
   // Connect to a specific peer
-  connectToPeer(peerId) {
+  connectToPeer(peerId: string) {
     if (this.connections.size >= MAX_PEERS) {
       console.log("Max peer connections reached");
       return;
@@ -131,7 +145,7 @@ class PeerConnectionManager {
     }
 
     try {
-      const conn = this.peer.connect(peerId);
+      const conn = this.peer!.connect(peerId);
       this.setupConnection(conn);
     } catch (error) {
       console.error("Error connecting to peer:", error);
@@ -139,7 +153,7 @@ class PeerConnectionManager {
   }
 
   // Handle incoming connection from another peer
-  handleIncomingConnection(conn) {
+  handleIncomingConnection(conn: DataConnection) {
     if (this.connections.size >= MAX_PEERS) {
       console.log("Max peer connections reached, rejecting connection");
       conn.close();
@@ -150,7 +164,7 @@ class PeerConnectionManager {
   }
 
   // Setup event handlers for a connection
-  setupConnection(conn) {
+  setupConnection(conn: DataConnection) {
     conn.on("open", () => {
       console.log("Connected to peer:", conn.peer);
       this.connections.set(conn.peer, conn);
@@ -158,13 +172,14 @@ class PeerConnectionManager {
       // Send our initial state
       this.sendMessage(conn.peer, {
         type: "player-join",
-        playerName: this.playerName,
-        peerId: this.myPeerId,
-        checkedCount: this.playerProgress.get(this.myPeerId)?.checkedCount || 0,
+        playerName: this.playerName!,
+        peerId: this.myPeerId!,
+        checkedCount:
+          this.playerProgress.get(this.myPeerId!)?.checkedCount || 0,
       });
     });
 
-    conn.on("data", (data) => {
+    conn.on("data", (data: any) => {
       this.handleMessage(conn.peer, data);
     });
 
@@ -175,7 +190,7 @@ class PeerConnectionManager {
       this.notifyPlayerListUpdate();
     });
 
-    conn.on("error", (error) => {
+    conn.on("error", (error: any) => {
       console.error("Connection error with peer:", conn.peer, error);
       this.connections.delete(conn.peer);
       this.playerProgress.delete(conn.peer);
@@ -184,7 +199,7 @@ class PeerConnectionManager {
   }
 
   // Handle incoming messages from peers
-  handleMessage(peerId, data) {
+  handleMessage(peerId: string, data: any) {
     console.log("Received message from", peerId, ":", data);
 
     switch (data.type) {
@@ -201,7 +216,7 @@ class PeerConnectionManager {
           playerName: this.playerName,
           peerId: this.myPeerId,
           checkedCount:
-            this.playerProgress.get(this.myPeerId)?.checkedCount || 0,
+            this.playerProgress.get(this.myPeerId!)?.checkedCount || 0,
         });
         break;
 
@@ -258,7 +273,7 @@ class PeerConnectionManager {
   }
 
   // Send a message to a specific peer or all peers
-  sendMessage(peerId, message) {
+  sendMessage(peerId: string | null, message: any) {
     if (peerId) {
       const conn = this.connections.get(peerId);
       if (conn && conn.open) {
@@ -275,7 +290,7 @@ class PeerConnectionManager {
   }
 
   // Broadcast that a tile was validated
-  broadcastTileValidation(checkedCount) {
+  broadcastTileValidation(checkedCount: number) {
     // Update our own progress
     if (this.myPeerId) {
       const current = this.playerProgress.get(this.myPeerId);
@@ -302,7 +317,7 @@ class PeerConnectionManager {
   }
 
   // Broadcast that a tile was unvalidated
-  broadcastTileUnvalidation(checkedCount) {
+  broadcastTileUnvalidation(checkedCount: number) {
     // Update our own progress
     if (this.myPeerId) {
       const current = this.playerProgress.get(this.myPeerId);
@@ -354,12 +369,12 @@ class PeerConnectionManager {
   }
 
   // Set callback for notifications
-  onNotification(callback) {
+  onNotification(callback: (notification: any) => void) {
     this.onNotificationCallback = callback;
   }
 
   // Set callback for player list updates
-  onPlayerListUpdate(callback) {
+  onPlayerListUpdate(callback: (playerList: any) => void) {
     this.onPlayerListUpdateCallback = callback;
   }
 

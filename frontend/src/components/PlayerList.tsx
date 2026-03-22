@@ -1,4 +1,16 @@
-function PlayerList({ players, totalTiles }) {
+interface PlayerData {
+  peerId: string;
+  name: string;
+  checkedCount: number;
+  isMe: boolean;
+}
+
+interface PlayerListProps {
+  players: PlayerData[];
+  totalTiles: number;
+}
+
+function PlayerList({ players, totalTiles }: PlayerListProps) {
   if (!players || players.length === 0) {
     return null;
   }

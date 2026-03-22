@@ -2,6 +2,17 @@
  * BingoGridControls Component
  * Controls for editing grid dimensions, title, and showing progress
  */
+import { Tile } from "../types/models";
+
+interface BingoGridControlsProps {
+  title: string;
+  onTitleChange: (title: string) => void;
+  rows: number;
+  columns: number;
+  onGridSizeChange: (rows: number, columns: number) => void;
+  tiles: Tile[];
+  statusBadgeType?: "draft" | "incomplete";
+}
 
 function BingoGridControls({
   title,
@@ -10,8 +21,8 @@ function BingoGridControls({
   columns,
   onGridSizeChange,
   tiles,
-  statusBadgeType = "draft", // "draft" or "incomplete"
-}) {
+  statusBadgeType = "draft",
+}: BingoGridControlsProps) {
   const filledTiles = tiles.filter((t) => t.value.trim()).length;
   const emptyTiles = tiles.filter((t) => !t.value.trim()).length;
   const completionPercentage = (filledTiles / tiles.length) * 100;

@@ -4,7 +4,23 @@
  * Displays buttons with icons and labels in a fixed bottom bar
  */
 
-function MobileActionBar({ buttons }) {
+interface MobileActionButton {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  variant?: string;
+  active?: boolean;
+  disabled?: boolean;
+  ariaLabel?: string;
+  ariaExpanded?: boolean;
+  title?: string;
+}
+
+interface MobileActionBarProps {
+  buttons: MobileActionButton[];
+}
+
+function MobileActionBar({ buttons }: MobileActionBarProps) {
   return (
     <div className="mobile-action-bar">
       {buttons.map((button, index) => (

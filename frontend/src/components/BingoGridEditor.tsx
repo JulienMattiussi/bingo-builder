@@ -2,11 +2,26 @@
  * BingoGridEditor Component
  * Editable grid of bingo tiles
  */
+import { Tile } from "../types/models";
 
-function BingoGridEditor({ tiles, rows, columns, onTileChange, onTileClick }) {
+interface BingoGridEditorProps {
+  tiles: Tile[];
+  rows: number;
+  columns: number;
+  onTileChange: (position: number, value: string) => void;
+  onTileClick?: (tile: Tile) => void;
+}
+
+function BingoGridEditor({
+  tiles,
+  rows,
+  columns,
+  onTileChange,
+  onTileClick,
+}: BingoGridEditorProps) {
   const isMobile = () => window.innerWidth < 768;
 
-  const handleTileClick = (tile, index) => {
+  const handleTileClick = (tile: Tile, index: number) => {
     // On mobile, open full-size editor modal
     if (onTileClick && isMobile()) {
       onTileClick({ ...tile, position: index });

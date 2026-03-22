@@ -6,25 +6,41 @@ import { createPeerConnection } from "../utils/peerConnection";
 import NotificationContainer from "../components/Notification";
 import PlayerList from "../components/PlayerList";
 import MobileActionBar from "../components/MobileActionBar";
+import { Card, Tile, Notification } from "../types/models";
+
+interface NotificationWithLocalId extends Omit<Notification, "id"> {
+  id: number;
+}
+
+interface Player {
+  peerId: string;
+  name: string;
+  checkedCount: number;
+  isMe: boolean;
+}
 
 function PlayCard() {
-  const { id } = useParams();
-  const [card, setCard] = useState(null);
-  const [checkedTiles, setCheckedTiles] = useState([]);
+  const { id } = useParams<{ id: string }>();
+  const [card, setCard] = useState<Card | null>(null);
+  const [checkedTiles, setCheckedTiles] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [playerName, setPlayerName] = useState("");
-  const [notifications, setNotifications] = useState([]);
-  const [players, setPlayers] = useState([]);
+  const [notifications, setNotifications] = useState<NotificationWithLocalId[]>(
+    [],
+  );
+  const [players, setPlayers] = useState<Player[]>([]);
   const [isPeerConnected, setIsPeerConnected] = useState(false);
   // Player list is hidden by default on mobile, can be toggled open
   const [isPlayerListOpen, setIsPlayerListOpen] = useState(false);
   // Selected tile for mobile full-size view
-  const [selectedTile, setSelectedTile] = useState(null);
+  const [selectedTile, setSelectedTile] = useState<Tile | null>(null);
 
-  const peerConnectionRef = useRef(null);
+  const peerConnectionRef = useRef<ReturnType<
+    typeof createPeerConnection
+  > | null>(null);
   const notificationIdRef = useRef(0);
 
   useEffect(() => {
@@ -66,12 +82,12 @@ function PlayCard() {
       peerConnectionRef.current = peerConnection;
 
       // Set up callbacks BEFORE initializing
-      peerConnection.onNotification((notification) => {
+      peerConnection.onNotification((notification: any) => {
         console.log("[P2P] Received notification:", notification);
         addNotification(notification);
       });
 
-      peerConnection.onPlayerListUpdate((playerList) => {
+      peerConnection.onPlayerListUpdate((playerList: any) => {
         console.log("[P2P] Player list updated:", playerList);
         setPlayers(playerList);
       });
@@ -83,7 +99,7 @@ function PlayCard() {
         "playerName:",
         playerName,
       );
-      await peerConnection.initialize(id, playerName, checkedTiles.length);
+      await peerConnection.initialize(id!, playerName, checkedTiles.length);
       setIsPeerConnected(true);
       console.log("[P2P] Peer connection initialized successfully");
     } catch (error) {
@@ -92,16 +108,21 @@ function PlayCard() {
     }
   };
 
-  const addNotification = (notification) => {
-    const id = notificationIdRef.current++;
-    setNotifications((prev) => [...prev, { ...notification, id }]);
+  const addNotification = (notification: any) => {
+    const localId = notificationIdRef.current++;
+    const notif: NotificationWithLocalId = {
+      ...notification,
+      id: localId,
+    };
+    setNotifications((prev) => [...prev, notif]);
   };
 
-  const dismissNotification = (notificationId) => {
+  const dismissNotification = (notificationId: string | number) => {
     setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
   };
 
   const loadCard = async () => {
+    if (!id) return;
     try {
       setLoading(true);
       const data = await api.getCard(id);
@@ -113,7 +134,7 @@ function PlayCard() {
 
       setCard(data);
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -126,13 +147,13 @@ function PlayCard() {
     }
   };
 
-  const checkForBingo = (checked, rows, columns) => {
+  const checkForBingo = (checked: number[], rows: number, columns: number) => {
     const totalTiles = rows * columns;
     // Check if all tiles are checked (full card completion)
     return checked.length === totalTiles;
   };
 
-  const handleTileClick = (tile) => {
+  const handleTileClick = (tile: Tile) => {
     // On mobile (screen width < 768px), open full-size viewer
     if (window.innerWidth < 768) {
       setSelectedTile(tile);
@@ -142,7 +163,7 @@ function PlayCard() {
     }
   };
 
-  const toggleTile = (position) => {
+  const toggleTile = (position: number) => {
     const wasChecked = checkedTiles.includes(position);
     const newChecked = wasChecked
       ? checkedTiles.filter((p) => p !== position)

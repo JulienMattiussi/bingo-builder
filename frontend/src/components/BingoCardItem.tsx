@@ -1,6 +1,17 @@
 import BingoCardPreview from "./BingoCardPreview";
 import CardStatusInfo from "./CardStatusInfo";
 import CardActions from "./CardActions";
+import { Card, CardProgress } from "../types/models";
+
+interface BingoCardItemProps {
+  card: Card;
+  currentPlayerName: string;
+  progress: CardProgress;
+  onDelete?: (id: string) => void;
+  onUnpublish: (id: string) => void;
+  showPreview?: boolean;
+  layout?: "default" | "horizontal";
+}
 
 function BingoCardItem({
   card,
@@ -9,8 +20,8 @@ function BingoCardItem({
   onDelete,
   onUnpublish,
   showPreview = true,
-  layout = "default", // 'default' or 'horizontal'
-}) {
+  layout = "default",
+}: BingoCardItemProps) {
   const isOwner = card.createdBy === currentPlayerName;
 
   const cardTitle = (

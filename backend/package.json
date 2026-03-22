@@ -2,15 +2,16 @@
   "name": "bingo-builder-backend",
   "version": "1.0.0",
   "description": "Backend API for Bingo Card Builder",
-  "main": "server.js",
+  "main": "server.ts",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"**/*.js\"",
-    "format:check": "prettier --check \"**/*.js\""
+    "start": "node --loader ts-node/esm server.ts",
+    "dev": "nodemon --exec node --loader ts-node/esm server.ts",
+    "build": "tsc",
+    "lint": "eslint . --ext ts --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts --fix",
+    "format": "prettier --write \"**/*.ts\"",
+    "format:check": "prettier --check \"**/*.ts\""
   },
   "keywords": [
     "bingo",
@@ -20,15 +21,22 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^8.0.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mongoose": "^8.0.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
     "eslint": "^8.55.0",
     "eslint-config-prettier": "^9.1.0",
-    "nodemon": "^3.0.1",
-    "prettier": "^3.1.1"
+    "nodemon": "^3.1.14",
+    "prettier": "^3.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

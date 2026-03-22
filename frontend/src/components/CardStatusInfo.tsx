@@ -1,8 +1,17 @@
-function CardStatusInfo({ card, isOwner }) {
+import { Card } from "../types/models";
+
+interface CardStatusInfoProps {
+  card: Card;
+  isOwner: boolean;
+}
+
+function CardStatusInfo({ card, isOwner }: CardStatusInfoProps) {
   if (card.isPublished) {
     return (
       <p className="status-text">
-        ✓ Published on {new Date(card.publishedAt).toLocaleDateString()}
+        ✓ Published
+        {card.createdAt &&
+          ` on ${new Date(card.createdAt).toLocaleDateString()}`}
         {card.createdBy && (
           <span>
             {" • Created by "}

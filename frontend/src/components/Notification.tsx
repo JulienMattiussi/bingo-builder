@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
+import { Notification as NotificationType } from "../types/models";
 
-function Notification({ notification, onClose }) {
+interface NotificationProps {
+  notification: NotificationType;
+  onClose: () => void;
+}
+
+function Notification({ notification, onClose }: NotificationProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -45,13 +51,21 @@ function Notification({ notification, onClose }) {
   );
 }
 
-function NotificationContainer({ notifications, onDismiss }) {
+interface NotificationContainerProps<T extends { id: string | number }> {
+  notifications: T[];
+  onDismiss: (id: string | number) => void;
+}
+
+function NotificationContainer<T extends { id: string | number }>({
+  notifications,
+  onDismiss,
+}: NotificationContainerProps<T>) {
   return (
     <div className="notification-container">
       {notifications.map((notification) => (
         <Notification
           key={notification.id}
-          notification={notification}
+          notification={notification as any}
           onClose={() => onDismiss(notification.id)}
         />
       ))}

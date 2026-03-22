@@ -1,6 +1,17 @@
 import { Link } from "react-router-dom";
+import { Card } from "../types/models";
 
-function PlayedCardItem({ card, checkedCount, totalTiles }) {
+interface PlayedCardItemProps {
+  card: Card;
+  checkedCount: number;
+  totalTiles: number;
+}
+
+function PlayedCardItem({
+  card,
+  checkedCount,
+  totalTiles,
+}: PlayedCardItemProps) {
   const isCompleted = checkedCount === totalTiles;
   const progressPercent = Math.round((checkedCount / totalTiles) * 100);
 

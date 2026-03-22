@@ -2,9 +2,16 @@
  * TileEditorModal Component
  * Full-screen tile editor for mobile devices
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
+import { Tile } from "../types/models";
 
-function TileEditorModal({ tile, onSave, onClose }) {
+interface TileEditorModalProps {
+  tile: Tile | null;
+  onSave: (position: number, value: string) => void;
+  onClose: () => void;
+}
+
+function TileEditorModal({ tile, onSave, onClose }: TileEditorModalProps) {
   const [value, setValue] = useState("");
 
   useEffect(() => {
@@ -15,7 +22,7 @@ function TileEditorModal({ tile, onSave, onClose }) {
 
   if (!tile) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSave(tile.position, value);
     onClose();

@@ -1,8 +1,13 @@
 /**
  * Custom hook to get card progress from localStorage
  */
+import { CardProgress } from "../types/models";
+
 export const useCardProgress = () => {
-  const getCardProgress = (cardId, totalTiles) => {
+  const getCardProgress = (
+    cardId: string,
+    totalTiles: number,
+  ): CardProgress => {
     const stored = localStorage.getItem(`bingo-card-${cardId}`);
     if (!stored) {
       return {

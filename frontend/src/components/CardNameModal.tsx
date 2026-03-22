@@ -2,6 +2,16 @@
  * CardNameModal Component
  * Modal for collecting player name before creating/editing a card
  */
+import { KeyboardEvent } from "react";
+
+interface CardNameModalProps {
+  show: boolean;
+  playerName: string;
+  onPlayerNameChange: (name: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+  message?: string;
+}
 
 function CardNameModal({
   show,
@@ -10,7 +20,7 @@ function CardNameModal({
   onSubmit,
   onCancel,
   message = "Please enter your name:",
-}) {
+}: CardNameModalProps) {
   if (!show) return null;
 
   return (
@@ -35,7 +45,9 @@ function CardNameModal({
           maxLength={10}
           className="modal-input"
           autoFocus
-          onKeyPress={(e) => e.key === "Enter" && onSubmit()}
+          onKeyPress={(e: KeyboardEvent<HTMLInputElement>) =>
+            e.key === "Enter" && onSubmit()
+          }
         />
         <div className="modal-buttons">
           <button onClick={onCancel}>Cancel</button>

@@ -22,7 +22,7 @@ app.use("/api/cards", cardRoutes);
 app.use("/api/peers", peerRoutes);
 
 // Health check
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 

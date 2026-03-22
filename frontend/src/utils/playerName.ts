@@ -2,7 +2,7 @@ const PLAYER_NAME_KEY = "bingo-player-name";
 
 export const playerNameUtils = {
   // Validate player name format
-  isValidName(name) {
+  isValidName(name: string): boolean {
     // Only letters, digits, - and _
     // Maximum 10 characters
     const regex = /^[a-zA-Z0-9_-]{1,10}$/;
@@ -10,12 +10,12 @@ export const playerNameUtils = {
   },
 
   // Get player name from localStorage
-  getPlayerName() {
+  getPlayerName(): string {
     return localStorage.getItem(PLAYER_NAME_KEY) || "";
   },
 
   // Save player name to localStorage
-  savePlayerName(name) {
+  savePlayerName(name: string): boolean {
     if (name && this.isValidName(name)) {
       localStorage.setItem(PLAYER_NAME_KEY, name.trim());
       return true;
@@ -24,12 +24,12 @@ export const playerNameUtils = {
   },
 
   // Check if player name exists
-  hasPlayerName() {
+  hasPlayerName(): boolean {
     return !!localStorage.getItem(PLAYER_NAME_KEY);
   },
 
   // Clear player name
-  clearPlayerName() {
+  clearPlayerName(): void {
     localStorage.removeItem(PLAYER_NAME_KEY);
   },
 };

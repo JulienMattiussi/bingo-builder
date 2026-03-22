@@ -1,22 +1,40 @@
+import { Card } from "../types/models";
+
 const API_BASE_URL = "/api";
+
+interface CardData {
+  title: string;
+  createdBy: string;
+  rows: number;
+  columns: number;
+  tiles: Array<{ value: string; position: number }>;
+}
+
+interface UpdateCardData {
+  title: string;
+  createdBy: string;
+  rows: number;
+  columns: number;
+  tiles: Array<{ value: string; position: number }>;
+}
 
 export const api = {
   // Get all cards
-  async getCards() {
+  async getCards(): Promise<Card[]> {
     const response = await fetch(`${API_BASE_URL}/cards`);
     if (!response.ok) throw new Error("Failed to fetch cards");
     return response.json();
   },
 
   // Get a single card
-  async getCard(id) {
+  async getCard(id: string): Promise<Card> {
     const response = await fetch(`${API_BASE_URL}/cards/${id}`);
     if (!response.ok) throw new Error("Failed to fetch card");
     return response.json();
   },
 
   // Create a new card
-  async createCard(cardData) {
+  async createCard(cardData: CardData): Promise<Card> {
     const response = await fetch(`${API_BASE_URL}/cards`, {
       method: "POST",
       headers: {
@@ -32,7 +50,7 @@ export const api = {
   },
 
   // Update a card
-  async updateCard(id, cardData) {
+  async updateCard(id: string, cardData: UpdateCardData): Promise<Card> {
     const response = await fetch(`${API_BASE_URL}/cards/${id}`, {
       method: "PUT",
       headers: {
@@ -48,7 +66,7 @@ export const api = {
   },
 
   // Publish a card
-  async publishCard(id, createdBy) {
+  async publishCard(id: string, createdBy: string): Promise<Card> {
     const response = await fetch(`${API_BASE_URL}/cards/${id}/publish`, {
       method: "POST",
       headers: {
@@ -64,7 +82,7 @@ export const api = {
   },
 
   // Unpublish a card
-  async unpublishCard(id, createdBy) {
+  async unpublishCard(id: string, createdBy: string): Promise<Card> {
     const response = await fetch(`${API_BASE_URL}/cards/${id}/unpublish`, {
       method: "POST",
       headers: {
@@ -80,7 +98,10 @@ export const api = {
   },
 
   // Delete a card
-  async deleteCard(id, createdBy) {
+  async deleteCard(
+    id: string,
+    createdBy: string,
+  ): Promise<{ message: string }> {
     const url = createdBy
       ? `${API_BASE_URL}/cards/${id}?createdBy=${encodeURIComponent(createdBy)}`
       : `${API_BASE_URL}/cards/${id}`;
@@ -95,7 +116,9 @@ export const api = {
   },
 
   // Delete all cards by creator
-  async deleteCardsByCreator(createdBy) {
+  async deleteCardsByCreator(
+    createdBy: string,
+  ): Promise<{ message: string; deletedCount: number }> {
     const response = await fetch(`${API_BASE_URL}/cards/delete-by-creator`, {
       method: "POST",
       headers: {
@@ -111,7 +134,7 @@ export const api = {
   },
 
   // Update creator name for all cards
-  async updateCreatorName(oldName, newName) {
+  async updateCreatorName(oldName: string, newName: string) {
     const response = await fetch(`${API_BASE_URL}/cards/update-creator`, {
       method: "POST",
       headers: {
@@ -127,7 +150,12 @@ export const api = {
   },
 
   // Peer discovery endpoints
-  async registerPeer(cardId, peerId, playerName, checkedCount = 0) {
+  async registerPeer(
+    cardId: string,
+    peerId: string,
+    playerName: string,
+    checkedCount = 0,
+  ) {
     const response = await fetch(`${API_BASE_URL}/peers/${cardId}/register`, {
       method: "POST",
       headers: {
@@ -142,7 +170,7 @@ export const api = {
     return response.json();
   },
 
-  async getActivePeers(cardId, excludePeerId) {
+  async getActivePeers(cardId: string, excludePeerId?: string) {
     let url = `${API_BASE_URL}/peers/${cardId}/peers`;
     if (excludePeerId) {
       url += `?excludePeerId=${encodeURIComponent(excludePeerId)}`;
@@ -154,7 +182,7 @@ export const api = {
     return response.json();
   },
 
-  async unregisterPeer(cardId, peerId) {
+  async unregisterPeer(cardId: string, peerId: string) {
     const response = await fetch(
       `${API_BASE_URL}/peers/${cardId}/unregister/${peerId}`,
       {
@@ -167,7 +195,7 @@ export const api = {
     return response.json();
   },
 
-  async peerHeartbeat(cardId, peerId, checkedCount) {
+  async peerHeartbeat(cardId: string, peerId: string, checkedCount: number) {
     const response = await fetch(
       `${API_BASE_URL}/peers/${cardId}/heartbeat/${peerId}`,
       {

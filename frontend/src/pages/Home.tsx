@@ -3,11 +3,12 @@ import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
 import { useCardProgress } from "../hooks/useCardProgress";
 import BingoCardItem from "../components/BingoCardItem";
+import { Card } from "../types/models";
 
 function Home() {
-  const [cards, setCards] = useState([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const currentPlayerName = playerNameUtils.getPlayerName();
   const { getCardProgress } = useCardProgress();
 
@@ -25,13 +26,13 @@ function Home() {
       const sortedCards = sortCardsByPriority(data);
       setCards(sortedCards);
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
-  const sortCardsByPriority = (cardsData) => {
+  const sortCardsByPriority = (cardsData: Card[]) => {
     const currentPlayer = currentPlayerName;
 
     return cardsData.sort((a, b) => {
@@ -71,18 +72,18 @@ function Home() {
     });
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this card?")) return;
 
     try {
       await api.deleteCard(id, currentPlayerName);
       await loadCards();
     } catch (err) {
-      alert(err.message);
+      alert((err as Error).message);
     }
   };
 
-  const handleUnpublish = async (id) => {
+  const handleUnpublish = async (id: string) => {
     if (
       !window.confirm(
         "Are you sure you want to unpublish this card? It will become editable again.",
@@ -94,7 +95,7 @@ function Home() {
       await api.unpublishCard(id, currentPlayerName);
       await loadCards();
     } catch (err) {
-      alert(err.message);
+      alert((err as Error).message);
     }
   };
 
@@ -104,7 +105,7 @@ function Home() {
   const publishedCards = cards.filter((card) => card.isPublished);
   const unpublishedCards = cards.filter((card) => !card.isPublished);
 
-  const renderCard = (card) => {
+  const renderCard = (card: Card) => {
     const progress = getCardProgress(card._id, card.tiles.length);
 
     return (

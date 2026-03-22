@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
 import MobileActionBar from "../components/MobileActionBar";
@@ -7,67 +7,33 @@ import CardNameModal from "../components/CardNameModal";
 import BingoGridControls from "../components/BingoGridControls";
 import BingoGridEditor from "../components/BingoGridEditor";
 import TileEditorModal from "../components/TileEditorModal";
+import { Tile } from "../types/models";
 
-function EditCard() {
-  const { id } = useParams();
+function CreateCard() {
   const navigate = useNavigate();
-  const [card, setCard] = useState(null);
   const [title, setTitle] = useState("");
   const [rows, setRows] = useState(4);
   const [columns, setColumns] = useState(6);
-  const [tiles, setTiles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [tiles, setTiles] = useState<Tile[]>(
+    Array(24)
+      .fill("")
+      .map((_, i) => ({ value: "", position: i })),
+  );
+  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [playerName, setPlayerName] = useState("");
-  const [hasAskedName, setHasAskedName] = useState(false);
-  const [selectedTile, setSelectedTile] = useState(null);
+  const [selectedTile, setSelectedTile] = useState<Tile | null>(null);
 
   useEffect(() => {
-    loadCard();
     // Load existing player name
     const existingName = playerNameUtils.getPlayerName();
     if (existingName) {
       setPlayerName(existingName);
-      setHasAskedName(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, setHasAskedName, setPlayerName]);
+  }, []);
 
-  const loadCard = async () => {
-    try {
-      setLoading(true);
-      const data = await api.getCard(id);
-
-      if (data.isPublished) {
-        setError("This card is already published and cannot be edited.");
-        return;
-      }
-
-      // Check if current player is the owner
-      const currentPlayerName = playerNameUtils.getPlayerName();
-      if (data.createdBy && data.createdBy !== currentPlayerName) {
-        setError(
-          "You are not the owner of this card. Only the owner can edit it.",
-        );
-        setTimeout(() => navigate("/"), 3000);
-        return;
-      }
-
-      setCard(data);
-      setTitle(data.title);
-      setRows(data.rows);
-      setColumns(data.columns);
-      setTiles(data.tiles);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGridSizeChange = (newRows, newColumns) => {
+  const handleGridSizeChange = (newRows: number, newColumns: number) => {
     const totalTiles = newRows * newColumns;
     const newTiles = Array(totalTiles)
       .fill("")
@@ -80,7 +46,7 @@ function EditCard() {
     setTiles(newTiles);
   };
 
-  const handleTileChange = (position, value) => {
+  const handleTileChange = (position: number, value: string) => {
     setTiles(
       tiles.map((tile, i) => (i === position ? { ...tile, value } : tile)),
     );
@@ -93,7 +59,7 @@ function EditCard() {
     }
 
     // Check if we need to ask for player name
-    if (!hasAskedName && !playerNameUtils.hasPlayerName()) {
+    if (!playerNameUtils.hasPlayerName()) {
       setShowNameModal(true);
       return;
     }
@@ -105,7 +71,7 @@ function EditCard() {
     try {
       setSaving(true);
       setError(null);
-      await api.updateCard(id, {
+      await api.createCard({
         title: title.trim(),
         createdBy: playerName.trim(),
         rows,
@@ -114,7 +80,7 @@ function EditCard() {
       });
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
     } finally {
       setSaving(false);
     }
@@ -130,44 +96,9 @@ function EditCard() {
       return;
     }
     playerNameUtils.savePlayerName(playerName);
-    setHasAskedName(true);
     setShowNameModal(false);
     saveCard();
   };
-
-  const handlePublish = async () => {
-    // Check if all tiles are filled
-    const emptyTiles = tiles.filter((t) => !t.value.trim());
-    if (emptyTiles.length > 0) {
-      setError(
-        `Cannot publish incomplete card. ${emptyTiles.length} tiles are still empty.`,
-      );
-      return;
-    }
-
-    if (
-      !window.confirm(
-        "Are you sure you want to publish this card? Once published, it cannot be edited.",
-      )
-    ) {
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setError(null);
-      const currentPlayerName = playerNameUtils.getPlayerName();
-      await api.publishCard(id, currentPlayerName);
-      navigate("/");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) return <div className="loading">Loading card...</div>;
-  if (error && !card) return <div className="error">Error: {error}</div>;
 
   return (
     <div>
@@ -177,10 +108,10 @@ function EditCard() {
         onPlayerNameChange={setPlayerName}
         onSubmit={handleNameSubmit}
         onCancel={() => setShowNameModal(false)}
-        message="Please enter your name to edit this card:"
+        message="Please enter your name to create your first bingo card:"
       />
 
-      <h1 style={{ marginBottom: "1rem" }}>Edit Bingo Card</h1>
+      <h1 style={{ marginBottom: "1rem" }}>Create New Bingo Card</h1>
 
       {error && <div className="error">{error}</div>}
 
@@ -192,7 +123,7 @@ function EditCard() {
           columns={columns}
           onGridSizeChange={handleGridSizeChange}
           tiles={tiles}
-          statusBadgeType="incomplete"
+          statusBadgeType="draft"
         />
 
         <BingoGridEditor
@@ -205,20 +136,8 @@ function EditCard() {
 
         <div className="button-group">
           <button onClick={() => navigate("/")}>Cancel</button>
-          <button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
-          <button
-            className="success"
-            onClick={handlePublish}
-            disabled={saving || tiles.filter((t) => !t.value.trim()).length > 0}
-            title={
-              tiles.filter((t) => !t.value.trim()).length > 0
-                ? "Fill all tiles to publish"
-                : ""
-            }
-          >
-            {saving ? "Publishing..." : "Publish Card"}
+          <button className="success" onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Save Card"}
           </button>
         </div>
       </div>
@@ -237,19 +156,8 @@ function EditCard() {
             label: saving ? "Saving..." : "Save",
             onClick: handleSave,
             disabled: saving,
-            ariaLabel: "Save changes",
-          },
-          {
-            icon: "✅",
-            label: saving ? "Publishing..." : "Publish",
-            onClick: handlePublish,
-            disabled: saving || tiles.filter((t) => !t.value.trim()).length > 0,
             variant: "success",
-            ariaLabel: "Publish card",
-            title:
-              tiles.filter((t) => !t.value.trim()).length > 0
-                ? "Fill all tiles to publish"
-                : "",
+            ariaLabel: "Save card",
           },
         ]}
       />
@@ -264,4 +172,4 @@ function EditCard() {
   );
 }
 
-export default EditCard;
+export default CreateCard;

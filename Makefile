@@ -1,4 +1,4 @@
-.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db restart-db db-logs db-status build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check clean clean-all dev logs test test-backend test-frontend deploy preview check fix setup
+.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db restart-db db-logs db-status build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check typecheck typecheck-backend typecheck-frontend clean clean-all dev logs test test-backend test-frontend deploy preview check fix setup
 
 help: ## Display available commands
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -80,6 +80,14 @@ format-frontend: ## Format frontend code
 format-check: ## Check if code is properly formatted
 	cd backend && npm run format:check
 	cd frontend && npm run format:check
+
+typecheck: typecheck-backend typecheck-frontend ## Run TypeScript type checking on all code
+
+typecheck-backend: ## Type check backend code
+	cd backend && npx tsc --noEmit
+
+typecheck-frontend: ## Type check frontend code
+	cd frontend && npx tsc --noEmit
 
 # Cleanup commands
 

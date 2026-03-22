@@ -5,17 +5,18 @@ import { api } from "../utils/api";
 import { useCardProgress } from "../hooks/useCardProgress";
 import BingoCardItem from "../components/BingoCardItem";
 import PlayedCardItem from "../components/PlayedCardItem";
+import { Card } from "../types/models";
 
 function Profile() {
   const navigate = useNavigate();
   const [currentName, setCurrentName] = useState("");
   const [newName, setNewName] = useState("");
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [ownedCards, setOwnedCards] = useState([]);
-  const [playedCards, setPlayedCards] = useState([]);
+  const [ownedCards, setOwnedCards] = useState<Card[]>([]);
+  const [playedCards, setPlayedCards] = useState<Card[]>([]);
   const [loadingCards, setLoadingCards] = useState(true);
   const { getCardProgress } = useCardProgress();
 
@@ -31,7 +32,7 @@ function Profile() {
     loadCards(name);
   }, [navigate]);
 
-  const loadCards = async (playerName) => {
+  const loadCards = async (playerName: string) => {
     try {
       setLoadingCards(true);
       const allCards = await api.getCards();
@@ -93,11 +94,11 @@ function Profile() {
       // Reload cards with new name
       loadCards(newName);
     } catch (err) {
-      setError(err.message || "Failed to update nickname");
+      setError((err as Error).message || "Failed to update nickname");
     }
   };
 
-  const handleUnpublish = async (cardId) => {
+  const handleUnpublish = async (cardId: string) => {
     if (
       !window.confirm(
         "Are you sure you want to unpublish this card? It will become editable again.",
@@ -111,7 +112,7 @@ function Profile() {
       setSuccess("Card unpublished successfully!");
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
       setTimeout(() => setError(null), 3000);
     }
   };
@@ -147,7 +148,7 @@ function Profile() {
       // Redirect to home
       navigate("/");
     } catch (err) {
-      setError(err.message || "Failed to delete profile");
+      setError((err as Error).message || "Failed to delete profile");
       setDeleting(false);
     }
   };
