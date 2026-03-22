@@ -41,7 +41,7 @@ test.describe("Profile Page", () => {
 
     // Clear and set new name
     await nameInput.clear();
-    await nameInput.fill("E2ETestUser");
+    await nameInput.fill("TestUser");
 
     // Click save changes button
     await page.getByRole("button", { name: /save changes/i }).click();
@@ -51,7 +51,7 @@ test.describe("Profile Page", () => {
       return localStorage.getItem("bingo-player-name");
     });
 
-    expect(storedName).toBe("E2ETestUser");
+    expect(storedName).toBe("TestUser");
   });
 
   test("should display owned cards section", async ({ page }) => {

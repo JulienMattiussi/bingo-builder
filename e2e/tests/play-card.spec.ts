@@ -73,7 +73,7 @@ test.describe("Play Card Flow", () => {
     // Navigate to home first
     await page.goto("/");
 
-    // Look for any published card to play  
+    // Look for any published card to play
     const playLink = page.getByRole("link", { name: /play/i }).first();
 
     if (await playLink.isVisible()) {

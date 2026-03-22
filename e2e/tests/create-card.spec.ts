@@ -14,7 +14,7 @@ test.describe("Create Card Flow", () => {
   test("should create a new bingo card", async ({ page }) => {
     await page.goto("/create");
 
-    // Set player name if prompted initially  
+    // Set player name if prompted initially
     const initialNameInput = page.getByPlaceholder(/your name/i);
     if (await initialNameInput.isVisible()) {
       await initialNameInput.fill("TestPlayer");
@@ -64,9 +64,9 @@ test.describe("Create Card Flow", () => {
     // Find the Rows control and click the + button to increase rows
     const rowsPlusBtn = page
       .locator("label:has-text('Rows:')")
-      .locator("..")  
+      .locator("..")
       .locator(".button-group-inline")
-      .getByRole("button")  
+      .getByRole("button")
       .nth(1); // Second button is +
 
     await rowsPlusBtn.click();

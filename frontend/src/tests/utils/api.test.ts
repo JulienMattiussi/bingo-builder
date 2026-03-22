@@ -138,14 +138,14 @@ describe("API Utility", () => {
       const updates = {
         title: "Updated Title",
         createdBy: "user1",
+        rows: 3,
+        columns: 3,
+        tiles: [],
       };
 
       const mockResponse = {
         _id: "123",
         ...updates,
-        rows: 3,
-        columns: 3,
-        tiles: [],
         isPublished: false,
       };
 
@@ -172,7 +172,15 @@ describe("API Utility", () => {
         json: async () => ({ message: "Not authorized" }),
       });
 
-      await expect(api.updateCard("123", { title: "Hack" })).rejects.toThrow();
+      await expect(
+        api.updateCard("123", {
+          title: "Hack",
+          createdBy: "hacker",
+          rows: 2,
+          columns: 2,
+          tiles: [],
+        }),
+      ).rejects.toThrow();
     });
   });
 

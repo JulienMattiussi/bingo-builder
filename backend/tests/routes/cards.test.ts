@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import express from "express";
 import request from "supertest";
 import cardRoutes from "../../routes/cards.js";
@@ -12,7 +12,7 @@ describe("Card Routes", () => {
   describe("GET /api/cards", () => {
     it("should return all cards sorted by createdAt descending", async () => {
       // Create test cards
-      const card1 = await Card.create({
+      await Card.create({
         title: "First Card",
         rows: 2,
         columns: 2,
@@ -22,7 +22,7 @@ describe("Card Routes", () => {
         })),
       });
 
-      const card2 = await Card.create({
+      await Card.create({
         title: "Second Card",
         rows: 3,
         columns: 3,
