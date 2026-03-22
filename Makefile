@@ -1,4 +1,4 @@
-.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db restart-db db-logs db-status build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check typecheck typecheck-backend typecheck-frontend test test-backend test-frontend test-watch test-coverage coverage clean clean-all dev logs deploy preview check fix setup
+.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db stop-test-db restart-db restart-test-db start-test-db db-logs db-status build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check typecheck typecheck-backend typecheck-frontend test test-backend test-frontend test-watch test-coverage coverage clean clean-all clean-test-data dev logs deploy preview check fix setup
 
 help: ## Display available commands
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -8,19 +8,31 @@ start-db: ## Start MongoDB with Docker Compose
 	docker compose up -d
 	@echo "MongoDB started on port 27017"
 
-stop-db: ## Stop MongoDB container
+stop-db: ## Stop MongoDB containers
 	docker compose down
 	@echo "MongoDB stopped"
 
-restart-db: ## Restart MongoDB container
+stop-test-db: ## Stop test MongoDB container only
+	docker compose stop mongodb-test
+	@echo "Test MongoDB stopped"
+
+restart-db: ## Restart MongoDB containers
 	docker compose restart
 	@echo "MongoDB restarted"
+
+restart-test-db: ## Restart test MongoDB container only
+	docker compose restart mongodb-test
+	@echo "Test MongoDB restarted"
 
 db-logs: ## View MongoDB logs
 	docker compose logs -f mongodb
 
 db-status: ## Check MongoDB status
 	docker compose ps
+
+start-test-db: ## Start test MongoDB container only
+	docker compose up -d mongodb-test
+	@echo "Test MongoDB started on port 27018"
 
 # Installation commands
 
@@ -107,7 +119,8 @@ test-backend: ## Run backend tests
 test-frontend: ## Run frontend tests
 	cd frontend && npm run test
 
-test-e2e: ## Run E2E tests with Playwright
+test-e2e: ## Run E2E tests with Playwright (uses test DB on port 27018)
+	@echo "⚠️  Make sure test database is running: make start-test-db"
 	cd e2e && npm run test
 
 test-e2e-ui: ## Run E2E tests with Playwright UI
@@ -138,6 +151,9 @@ coverage: ## Run tests with coverage report and check thresholds (75%)
 	cd frontend && npm run test:coverage
 	@echo ""
 	@echo "✅ Coverage reports generated in backend/coverage/ and frontend/coverage/"
+
+clean-test-data: ## Clean test data (TestPlayer, TestUser, E2EPlayer) from production database
+	cd backend && npm run clean-test-data
 
 # Cleanup commands
 

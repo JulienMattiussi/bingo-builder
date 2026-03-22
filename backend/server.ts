@@ -5,7 +5,11 @@ import connectDB from "./config/db.js";
 import cardRoutes from "./routes/cards.js";
 import peerRoutes from "./routes/peers.js";
 
-dotenv.config();
+// Only load .env file in non-test environments
+// This prevents .env from overriding test environment variables
+if (process.env.NODE_ENV !== "test") {
+  dotenv.config();
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;

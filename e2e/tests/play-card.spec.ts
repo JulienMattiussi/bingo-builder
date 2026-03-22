@@ -45,9 +45,11 @@ test.describe("Play Card Flow", () => {
     await expect(page).toHaveURL(/.*\/(home|$)/);
 
     // Find the unpublished card
-    const cardItem = page.locator(".card-item", {
-      hasText: "E2E Play Test Card",
-    });
+    const cardItem = page
+      .locator(".card-item", {
+        hasText: "E2E Play Test Card",
+      })
+      .first();
     await expect(cardItem).toBeVisible();
 
     // Click Edit button to go to edit page

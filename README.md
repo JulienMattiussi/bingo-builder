@@ -417,7 +417,7 @@ npm run format        # Format code with Prettier
 npm run format:check  # Check formatting
 ```
 
-See [CODE_QUALITY.md](CODE_QUALITY.md) for detailed information about code quality tools, editor integration, and configuration.
+See [Documentation/CODE_QUALITY.md](Documentation/CODE_QUALITY.md) for detailed information about code quality tools, editor integration, and configuration.
 
 ## License
 

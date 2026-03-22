@@ -18,6 +18,7 @@ const cardSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      maxlength: 25,
     },
     createdBy: {
       type: String,

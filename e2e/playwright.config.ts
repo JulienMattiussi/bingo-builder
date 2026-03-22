@@ -1,8 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Read environment variables
-const BACKEND_PORT = process.env.BACKEND_PORT || "3001";
-const FRONTEND_PORT = process.env.FRONTEND_PORT || "3000";
+// Use separate ports for E2E tests to avoid conflicts with dev servers
+const BACKEND_PORT = process.env.TEST_BACKEND_PORT || "3002";
+const FRONTEND_PORT = process.env.TEST_FRONTEND_PORT || "5173";
 
 export default defineConfig({
   testDir: "./tests",
@@ -24,19 +24,27 @@ export default defineConfig({
     },
   ],
 
-  // Run local dev server before starting tests
+  // Run test servers on separate ports (can coexist with dev servers)
   webServer: [
     {
-      command: "cd ../backend && npm start",
+      command: `cd ../backend && npm start`,
       port: parseInt(BACKEND_PORT),
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI,
+      env: {
+        NODE_ENV: "test",
+        PORT: BACKEND_PORT,
+        MONGODB_URI: "mongodb://localhost:27018/bingo-test",
+      },
     },
     {
-      command: "cd ../frontend && npm run dev",
+      command: `cd ../frontend && PORT=${FRONTEND_PORT} npm run dev -- --port ${FRONTEND_PORT}`,
       port: parseInt(FRONTEND_PORT),
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI,
     },
   ],
+
+  // Global setup to clean test database before tests
+  globalSetup: "./global-setup.ts",
 });

@@ -3,6 +3,9 @@
         "make": true,
         "npx tsc": true,
         "npm run build": true,
-        "npx playwright": true
+        "npx playwright": true,
+        "mongosh": true,
+        "printf": true,
+        "lsof": true
     }
 }

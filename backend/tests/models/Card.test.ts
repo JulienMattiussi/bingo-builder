@@ -41,6 +41,18 @@ describe("Card Model", () => {
       await expect(card.save()).rejects.toThrow();
     });
 
+    it("should fail validation with title exceeding 25 characters", async () => {
+      const cardData = {
+        title: "This title is way too long and exceeds the limit",
+        rows: 3,
+        columns: 3,
+        tiles: [],
+      };
+
+      const card = new Card(cardData);
+      await expect(card.save()).rejects.toThrow();
+    });
+
     it("should fail validation with rows less than 2", async () => {
       const cardData = {
         title: "Test Card",

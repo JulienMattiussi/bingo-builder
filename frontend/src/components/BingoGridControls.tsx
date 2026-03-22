@@ -36,7 +36,7 @@ function BingoGridControls({
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="Enter card title..."
-          maxLength={100}
+          maxLength={25}
           className="title-input"
         />
       </div>
