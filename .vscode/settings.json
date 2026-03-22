@@ -2,6 +2,7 @@
     "chat.tools.terminal.autoApprove": {
         "make": true,
         "npx tsc": true,
-        "npm run build": true
+        "npm run build": true,
+        "npx playwright": true
     }
 }

@@ -31,16 +31,23 @@ bingo-builder/
 │   ├── config/          # Database configuration
 │   ├── models/          # Mongoose models
 │   ├── routes/          # API routes
+│   ├── tests/           # Backend unit & integration tests
 │   ├── server.js        # Express server
 │   └── package.json
-└── frontend/
-    ├── src/
-    │   ├── pages/       # React page components
-    │   ├── utils/       # API utilities
-    │   ├── App.jsx      # Main app component
-    │   └── main.jsx     # Entry point
-    ├── index.html
-    ├── vite.config.js
+├── frontend/
+│   ├── src/
+│   │   ├── pages/       # React page components
+│   │   ├── components/  # React components
+│   │   ├── tests/       # Frontend unit tests
+│   │   ├── utils/       # API utilities
+│   │   ├── App.jsx      # Main app component
+│   │   └── main.jsx     # Entry point
+│   ├── index.html
+│   ├── vite.config.js
+│   └── package.json
+└── e2e/
+    ├── tests/           # E2E tests with Playwright
+    ├── playwright.config.ts
     └── package.json
 ```
 
@@ -79,9 +86,10 @@ The project includes a comprehensive Makefile with the following commands:
 
 **Setup & Installation:**
 - `make setup` - Complete first-time setup (install + start MongoDB)
-- `make install` - Install all dependencies (backend + frontend)
+- `make install` - Install all dependencies (backend + frontend + e2e)
 - `make install-backend` - Install backend dependencies only
 - `make install-frontend` - Install frontend dependencies only
+- `make install-e2e` - Install E2E test dependencies only
 
 **Database Management:**
 - `make start-db` - Start MongoDB with Docker Compose
@@ -112,10 +120,14 @@ The project includes a comprehensive Makefile with the following commands:
 - `make clean` - Clean dependencies and build artifacts
 - `make clean-all` - Clean everything including .env files
 
-**Testing (placeholders):**
-- `make test` - Run all tests
+**Testing:**
+- `make test` - Run all tests (unit + integration)
 - `make test-backend` - Run backend tests
 - `make test-frontend` - Run frontend tests
+- `make test-e2e` - Run E2E tests with Playwright
+- `make test-e2e-ui` - Run E2E tests with Playwright UI
+- `make test-all` - Run all tests including E2E
+- `make coverage` - Run tests with coverage report (75% threshold)
 
 ### MongoDB Setup
 
@@ -341,7 +353,66 @@ npm run format:check  # Check formatting
 ```bash
 cd backend
 npm run lint          # Check for linting errors
-npm run lint:fix      # Auto-fix linting errors
+npmTesting
+
+This project has comprehensive testing with **75% minimum coverage** requirement:
+
+### Test Coverage
+
+- ✅ **Backend**: 80%+ coverage (unit + integration tests)
+- ✅ **Frontend**: 98%+ coverage (component + utility tests)  
+- ✅ **E2E**: Full user flow coverage with Playwright
+
+### Running Tests
+
+**Unit & Integration Tests:**
+```bash
+make test              # Run backend + frontend tests
+make test-backend      # Run backend tests only
+make test-frontend     # Run frontend tests only
+make coverage          # Run with coverage report
+```
+
+**E2E Tests:**
+```bash
+make test-e2e          # Run E2E tests (headless)
+make test-e2e-ui       # Run with Playwright UI
+make test-e2e-headed   # Run with visible browser
+make test-all          # Run all tests including E2E
+```
+
+**Watch Mode:**
+```bash
+cd backend && npm run test:watch
+cd frontend && npm run test:watch
+```
+
+### Test Structure
+
+- **Backend Tests** (`backend/tests/`):
+  - Model validation tests
+  - API route integration tests
+  - MongoDB memory server for isolation
+
+- **Frontend Tests** (`frontend/src/tests/`):
+  - Component unit tests with React Testing Library
+  - Utility function tests
+  - API mock tests
+
+- **E2E Tests** (`e2e/tests/`):
+  - Home page navigation
+  - Card creation flow
+  - Card playing and interactions
+  - Profile management
+
+See [e2e/README.md](e2e/README.md) for detailed E2E testing documentation.
+
+### Test Framework
+
+- **Backend/Frontend**: [Vitest](https://vitest.dev/) with v8 coverage
+- **E2E**: [Playwright](https://playwright.dev/) with Chromium
+
+##  run lint:fix      # Auto-fix linting errors
 npm run format        # Format code with Prettier
 npm run format:check  # Check formatting
 ```

@@ -1,4 +1,4 @@
-.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db restart-db db-logs db-status build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check typecheck typecheck-backend typecheck-frontend clean clean-all dev logs test test-backend test-frontend deploy preview check fix setup
+.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db restart-db db-logs db-status build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check typecheck typecheck-backend typecheck-frontend test test-backend test-frontend test-watch test-coverage coverage clean clean-all dev logs deploy preview check fix setup
 
 help: ## Display available commands
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -24,17 +24,25 @@ db-status: ## Check MongoDB status
 
 # Installation commands
 
-install: ## Install all dependencies (backend + frontend)
+install: ## Install all dependencies (backend + frontend + e2e)
 	@echo "Installing backend dependencies..."
 	cd backend && npm install
 	@echo "Installing frontend dependencies..."
 	cd frontend && npm install
+	@echo "Installing E2E test dependencies..."
+	cd e2e && npm install
+	@echo "Installing Playwright browsers..."
+	cd e2e && npx playwright install chromium
 
 install-backend: ## Install backend dependencies only
 	cd backend && npm install
 
 install-frontend: ## Install frontend dependencies only
 	cd frontend && npm install
+
+install-e2e: ## Install E2E test dependencies only
+	cd e2e && npm install
+	cd e2e && npx playwright install chromium
 
 start: ## Start both backend and frontend in dev mode (requires 2 terminals)
 	@echo "Please run 'make start-backend' in one terminal and 'make start-frontend' in another"
@@ -89,6 +97,48 @@ typecheck-backend: ## Type check backend code
 typecheck-frontend: ## Type check frontend code
 	cd frontend && npx tsc --noEmit
 
+# Test commands
+
+test: test-backend test-frontend test-e2e ## Run all tests
+
+test-backend: ## Run backend tests
+	cd backend && npm run test
+
+test-frontend: ## Run frontend tests
+	cd frontend && npm run test
+
+test-e2e: ## Run E2E tests with Playwright
+	cd e2e && npm run test
+
+test-e2e-ui: ## Run E2E tests with Playwright UI
+	cd e2e && npm run test:ui
+
+test-e2e-headed: ## Run E2E tests in headed mode (visible browser)
+	cd e2e && npm run test:headed
+
+test-e2e-debug: ## Debug E2E tests with Playwright
+	cd e2e && npm run test:debug
+
+test-watch: ## Run tests in watch mode
+	@echo "Run 'make test-watch-backend' or 'make test-watch-frontend' for specific watch mode"
+
+test-watch-backend: ## Run backend tests in watch mode
+	cd backend && npm run test:watch
+
+test-watch-frontend: ## Run frontend tests in watch mode
+	cd frontend && npm run test:watch
+
+test-coverage: coverage ## Run tests with coverage report (alias)
+
+coverage: ## Run tests with coverage report and check thresholds (75%)
+	@echo "Running backend tests with coverage..."
+	cd backend && npm run test:coverage
+	@echo ""
+	@echo "Running frontend tests with coverage..."
+	cd frontend && npm run test:coverage
+	@echo ""
+	@echo "✅ Coverage reports generated in backend/coverage/ and frontend/coverage/"
+
 # Cleanup commands
 
 clean: ## Clean dependencies and build artifacts
@@ -109,17 +159,6 @@ dev: ## Start development (install + start backend in background)
 
 logs: ## View logs (if needed for debugging)
 	@echo "Check terminal output for logs"
-
-# Testing commands (placeholder for future)
-
-test: ## Run all tests
-	@echo "No tests configured yet"
-
-test-backend: ## Run backend tests
-	@echo "No backend tests configured yet"
-
-test-frontend: ## Run frontend tests
-	@echo "No frontend tests configured yet"
 
 # Production/Deployment commands
 

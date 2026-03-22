@@ -8,6 +8,10 @@
     "start": "node --loader ts-node/esm server.ts",
     "dev": "nodemon --exec node --loader ts-node/esm server.ts",
     "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint . --ext ts --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts --fix",
     "format": "prettier --write \"**/*.ts\"",
@@ -30,13 +34,18 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.5.0",
+    "@types/supertest": "^7.2.0",
     "@typescript-eslint/eslint-plugin": "^8.57.1",
     "@typescript-eslint/parser": "^8.57.1",
+    "@vitest/coverage-v8": "^4.1.0",
     "eslint": "^8.55.0",
     "eslint-config-prettier": "^9.1.0",
+    "mongodb-memory-server": "^11.0.1",
     "nodemon": "^3.1.14",
     "prettier": "^3.1.1",
+    "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
   }
 }
