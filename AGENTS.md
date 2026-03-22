@@ -41,15 +41,30 @@ const apiUrl = config.apiUrl;
 
 **CRITICAL**: Use `VITE_` prefix for ALL shared configuration between frontend and backend.
 
-**Structure**:
+**Development Configuration (.env)**:
 ```env
 # Backend-only (security-sensitive, NOT exposed to client)
 MONGODB_URI=mongodb://localhost:27017/bingo-builder
-MONGODB_TEST_URI=mongodb://localhost:27018/bingo-test
 
 # Shared (VITE_ prefix - readable by both frontend and backend)
 VITE_API_PORT=3001
 VITE_PORT=3000
+VITE_CARD_TITLE_MAX_LENGTH=25
+VITE_TILE_MAX_LENGTH=40
+VITE_PLAYER_NAME_MAX_LENGTH=10
+VITE_MAX_PLAYERS_PER_CARD=6
+```
+
+**Test Configuration (.env.test)**:
+```env
+# Test Database (isolated on port 27018)
+MONGODB_URI=mongodb://localhost:27018/bingo-test
+
+# Test Server Ports (different from development)
+VITE_API_PORT=3002
+VITE_PORT=5173
+
+# Application Limits (same as production)
 VITE_CARD_TITLE_MAX_LENGTH=25
 VITE_TILE_MAX_LENGTH=40
 VITE_PLAYER_NAME_MAX_LENGTH=10
@@ -62,17 +77,25 @@ VITE_MAX_PLAYERS_PER_CARD=6
 - **Single source of truth** - no duplication needed
 - Backend-only secrets stay hidden from client
 
+**Why .env.test?**
+- Explicit test configuration visible in one place
+- No dependency on CI/CD environment variables
+- Same pattern as development (`.env`) for consistency
+- Easy for new developers to understand test setup
+
 **Rules**:
 1. ✅ **DO**: Use `VITE_` prefix for shared values (ports, limits, feature flags)
 2. ✅ **DO**: Use plain names for backend-only secrets (database URIs, API keys)
-3. ❌ **DON'T**: Duplicate variables with and without `VITE_` prefix
-4. ❌ **DON'T**: Access `process.env` or `import.meta.env` directly - always use config classes
+3. ✅ **DO**: Update both `.env` and `.env.test` when changing shared configuration
+4. ❌ **DON'T**: Duplicate variables with and without `VITE_` prefix
+5. ❌ **DON'T**: Access `process.env` or `import.meta.env` directly - always use config classes
 
 **Adding New Configuration**:
 1. Add to `.env` and `.env.example` with `VITE_` prefix if shared
-2. Update schema in `backend/config/config.ts` OR `frontend/src/config.ts`
-3. Add TypeScript types in `frontend/vite-env.d.ts` for frontend vars
-4. Update `Documentation/CONFIGURATION.md`
+2. Add to `.env.test` if needed for tests
+3. Update schema in `backend/config/config.ts` OR `frontend/src/config.ts`
+4. Add TypeScript types in `frontend/vite-env.d.ts` for frontend vars
+5. Update `Documentation/CONFIGURATION.md`
 
 ---
 
@@ -365,18 +388,25 @@ e2e/tests/
 - **Dev Database**: `mongodb://localhost:27017/bingo-builder`
 - **Test Database**: `mongodb://localhost:27018/bingo-test` (separate container)
 
+**Configuration**:
+- Tests use `.env.test` for explicit test configuration
+- Backend config loads `.env.test` when `NODE_ENV=test`
+- Test server ports: Backend 3002, Frontend 5173 (different from dev)
+- Database URI points to isolated test database (port 27018)
+
 **Environment**:
 - Tests automatically set `NODE_ENV=test`
-- Backend config uses `MONGODB_TEST_URI` when in test mode
+- Backend config uses `MONGODB_URI` from `.env.test` (points to test database)
 - E2E tests run backend on port 3002, frontend on 5173
 
 **Rules**:
 1. ✅ **DO**: Start test database before running tests: `make start-test-db`
 2. ✅ **DO**: Clean up test data after tests (use `afterEach` hooks)
 3. ✅ **DO**: Use factories/fixtures for test data
-4. ❌ **DON'T**: Connect to dev database from tests
-5. ❌ **DON'T**: Hard-code port 3001 in tests (use config)
-6. ❌ **DON'T**: Rely on test execution order
+4. ✅ **DO**: Update `.env.test` when changing test configuration
+5. ❌ **DON'T**: Connect to dev database from tests
+6. ❌ **DON'T**: Hard-code port 3001 in tests (use config)
+7. ❌ **DON'T**: Rely on test execution order
 
 ### Test Coverage
 

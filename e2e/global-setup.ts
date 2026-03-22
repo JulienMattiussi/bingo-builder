@@ -6,7 +6,7 @@ async function globalSetup() {
   try {
     // Connect to the test database on separate port
     const testDbUri =
-      process.env.MONGODB_TEST_URI || "mongodb://localhost:27018/bingo-test";
+      process.env.MONGODB_URI || "mongodb://localhost:27018/bingo-test";
     await mongoose.connect(testDbUri);
 
     // Drop the entire test database to ensure clean state

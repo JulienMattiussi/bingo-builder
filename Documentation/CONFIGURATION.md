@@ -61,8 +61,7 @@ const maxPlayers = config.get("limits.maxPlayersPerCard"); // number
 |----------|------|---------|-------------|-----------------------|
 | `NODE_ENV` | string | development | Application environment | ❌ |
 | `VITE_API_PORT` | number | 3001 | Server port | ✅ |
-| `MONGODB_URI` | string | mongodb://localhost:27017/bingo-builder | MongoDB connection URI | ❌ Backend-only |
-| `MONGODB_TEST_URI` | string | mongodb://localhost:27018/bingo-test | Test database URI | ❌ Backend-only |
+| `MONGODB_URI` | string | mongodb://localhost:27017/bingo-builder | MongoDB connection URI (environment file determines dev vs test) | ❌ Backend-only |
 | `VITE_CARD_TITLE_MAX_LENGTH` | number | 25 | Maximum card title length | ✅ |
 | `VITE_TILE_MAX_LENGTH` | number | 40 | Maximum tile content length | ✅ |
 | `VITE_PLAYER_NAME_MAX_LENGTH` | number | 10 | Maximum player name length | ✅ |
@@ -110,11 +109,12 @@ All frontend environment variables use the `VITE_` prefix. These same variables 
 
 ## .env File Structure
 
+### Development Configuration (.env)
+
 ```env
 # Backend-only Configuration
 # These are NOT exposed to the frontend for security
 MONGODB_URI=mongodb://localhost:27017/bingo-builder
-MONGODB_TEST_URI=mongodb://localhost:27018/bingo-test
 
 # Shared Configuration (VITE_ prefix)
 # These are used by both frontend and backend
@@ -127,6 +127,33 @@ VITE_TILE_MAX_LENGTH=40
 VITE_PLAYER_NAME_MAX_LENGTH=10
 VITE_MAX_PLAYERS_PER_CARD=6
 ```
+
+### Test Configuration (.env.test)
+
+Tests use a separate `.env.test` file (see [Testing](#testing) section for details):
+
+```env
+# Test Database (isolated on port 27018)
+MONGODB_URI=mongodb://localhost:27018/bingo-test
+
+# Test Server Ports (different from development)
+VITE_API_PORT=3002
+VITE_PORT=5173
+
+# Application Limits (same as production)
+VITE_CARD_TITLE_MAX_LENGTH=25
+VITE_TILE_MAX_LENGTH=40
+VITE_PLAYER_NAME_MAX_LENGTH=10
+VITE_MAX_PLAYERS_PER_CARD=6
+```
+
+### File Overview
+
+| File | Purpose | Usage |
+|------|---------|-------|
+| `.env` | Development configuration | Loaded when `NODE_ENV=development` (default) |
+| `.env.test` | Test configuration | Loaded when `NODE_ENV=test` |
+| `.env.example` | Env template | Copy to `.env` or to `.env.test` for setup |
 
 ### Why VITE_ Prefix for Shared Values?
 
@@ -141,7 +168,33 @@ Vite only exposes environment variables prefixed with `VITE_` to the client bund
 ### Test Environment
 - Tests automatically use `NODE_ENV=test`
 - Test database uses separate port (27018) to prevent data contamination
-- Backend config skips loading `.env` in test mode (uses environment variables set by test runner)
+- Backend config loads `.env.test` in test mode for explicit test configuration
+- Test configuration file: `.env.test` (template: `.env.example`)
+
+### Test Configuration File
+
+Tests use a separate `.env.test` file with test-specific settings:
+
+```env
+# Test Database (port 27018 - isolated from development)
+MONGODB_URI=mongodb://localhost:27018/bingo-test
+
+# Test Server Ports (different from development)
+VITE_API_PORT=3002
+VITE_PORT=5173
+
+# Application Limits (same as production for consistency)
+VITE_CARD_TITLE_MAX_LENGTH=25
+VITE_TILE_MAX_LENGTH=40
+VITE_PLAYER_NAME_MAX_LENGTH=10
+VITE_MAX_PLAYERS_PER_CARD=6
+```
+
+**Why `.env.test`?**
+- ✅ Explicit test configuration visible in one place
+- ✅ No dependency on CI/CD environment variables
+- ✅ Same pattern as development (`.env`) and production
+- ✅ Easy for new developers to understand test setup
 
 ### Running Tests
 ```bash

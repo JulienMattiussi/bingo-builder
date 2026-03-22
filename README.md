@@ -211,11 +211,12 @@ This project uses **Convict** (backend) and a custom validation system (frontend
 
 ### Quick Overview
 
-All configuration is stored in a single `.env` file at the root of the project:
+All configuration is stored in `.env` files at the root of the project:
+- `.env` - Development configuration
+- `.env.test` - Test configuration (separate database on port 27018)
 
 **Backend-only Variables (security-sensitive):**
-- `MONGODB_URI` - MongoDB connection string
-- `MONGODB_TEST_URI` - Test database URI
+- `MONGODB_URI` - MongoDB connection string (environment file determines dev vs test database)
 
 **Shared Variables (VITE_ prefix - used by both frontend and backend):**
 - `VITE_API_PORT` - Backend server port (default: 3001)

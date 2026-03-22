@@ -24,16 +24,10 @@ const config = convict({
   },
   database: {
     uri: {
-      doc: "MongoDB connection URI",
+      doc: "MongoDB connection URI (determined by environment file: .env or .env.test)",
       format: String,
       default: "mongodb://localhost:27017/bingo-builder",
       env: "MONGODB_URI",
-    },
-    testUri: {
-      doc: "MongoDB test database URI",
-      format: String,
-      default: "mongodb://localhost:27018/bingo-test",
-      env: "MONGODB_TEST_URI",
     },
   },
   limits: {
@@ -65,13 +59,13 @@ const config = convict({
 });
 
 // Load environment-specific configuration
-// Only load .env file if not in test mode (test mode uses environment variables set by test runner)
-if (config.get("env") !== "test") {
-  // Load from root .env file
-  const dotenvPath = path.resolve(__dirname, "../../.env");
-  const dotenv = await import("dotenv");
-  dotenv.config({ path: dotenvPath });
-}
+const dotenv = await import("dotenv");
+const dotenvPath =
+  config.get("env") === "test"
+    ? path.resolve(__dirname, "../../.env.test")
+    : path.resolve(__dirname, "../../.env");
+
+dotenv.config({ path: dotenvPath });
 
 // Validate configuration
 config.validate({ allowed: "strict" });

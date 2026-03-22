@@ -3,11 +3,8 @@ import config from "./config.js";
 
 const connectDB = async () => {
   try {
-    // For E2E and unit tests, always use test database on separate port
-    const dbUri =
-      config.get("env") === "test"
-        ? config.get("database.testUri")
-        : config.get("database.uri");
+    // Use MONGODB_URI from environment file (.env or .env.test)
+    const dbUri = config.get("database.uri");
 
     const conn = await mongoose.connect(dbUri);
     console.log(

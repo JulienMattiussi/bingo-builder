@@ -153,12 +153,21 @@ make start-db
 
 # 2. Start dev servers
 make start
-Development database (default: mongodb://localhost:27017/bingo)
-MONGODB_URI=mongodb://localhost:27017/bingo-builder
-
-# Test database on separate port (default: mongodb://localhost:27018/bingo-test)
-MONGODB_TEST_URI=mongodb://localhost:27018/bingo-test
 ```
+
+### Environment Files
+
+**Development (.env)**:
+```env
+MONGODB_URI=mongodb://localhost:27017/bingo-builder
+```
+
+**Tests (.env.test)**:
+```env
+MONGODB_URI=mongodb://localhost:27018/bingo-test
+```
+
+> The environment file determines which database is used. No separate `MONGODB_TEST_URI` variable needed.
 
 ## Docker Commands
 
@@ -192,16 +201,18 @@ docker compose logs -f mongodb-test
 ### Infrastructure
 
 - **`docker-compose.yml`**: Added `mongodb-test` service on port 27018
-- **`backend/config/db.ts`**: Updated to use port 27018 for test database
+- **`backend/config/db.ts`**: Uses `MONGODB_URI` from environment file (.env or .env.test)
+- **`backend/config/config.ts`**: Loads `.env.test` when `NODE_ENV=test`
 - **`e2e/playwright.config.ts`**: 
   - Backend tests use port 3002
   - Frontend tests use port 5173
   - Servers can coexist with dev servers
-- **`e2e/global-setup.ts`**: Connects to test database on port 27018
+- **`e2e/global-setup.ts`**: Connects to test database using `MONGODB_URI` from `.env.test`
 
 ### Configuration
 
-- **`backend/.env.example`**: Added `MONGODB_TEST_URI` with port 27018
+- **`.env`**: Development configuration with port 27017
+- **`.env.test`**: Test configuration with port 27018
 - **`Makefile`**: Added test database commands
 
 ## Benefits
@@ -212,17 +223,10 @@ docker compose logs -f mongodb-test
 ✅ **Clean Tests**: Each E2E run starts with fresh database  
 ✅ **Fast Workflow**: No need to stop/restart servers  
 ✅ **Separate Ports**: Zero conflicts between dev and test environment
-```bash
-# Production database (default: mongodb://localhost:27017/bingo)
-MONGODB_URI=mongodb://localhost:27017/bingo-builder
 
-# Test database (default: mongodb://localhost:27017/bingo-test)
-MONGODB_TEST_URI=mongodb://localhost:27017/bingo-test
-```
-
-## Benefits
+## Summary
 
 ✅ **Clean Tests**: Each E2E test run starts with a fresh database  
-✅ **No Pollution**: Test data never affects your production database  
+✅ **No Pollution**: Test data never affects your development database  
 ✅ **Predictable**: Tests always run in the same clean environment  
-✅ **Isolated**: Unit tests, E2E tests, and production use separate databases
+✅ **Isolated**: Unit tests, E2E tests, and development use separate databases
