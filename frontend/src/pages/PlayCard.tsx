@@ -250,7 +250,9 @@ function PlayCard() {
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               placeholder="Your name..."
-              maxLength={10}
+              maxLength={
+                Number(import.meta.env.VITE_PLAYER_NAME_MAX_LENGTH) || 10
+              }
               className="modal-input"
               autoFocus
               onKeyPress={(e) => e.key === "Enter" && handleNameSubmit()}

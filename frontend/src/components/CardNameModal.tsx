@@ -42,7 +42,7 @@ function CardNameModal({
           value={playerName}
           onChange={(e) => onPlayerNameChange(e.target.value)}
           placeholder="Your name..."
-          maxLength={10}
+          maxLength={Number(import.meta.env.VITE_PLAYER_NAME_MAX_LENGTH) || 10}
           className="modal-input"
           autoFocus
           onKeyPress={(e: KeyboardEvent<HTMLInputElement>) =>

@@ -48,7 +48,8 @@ router.post("/:cardId/register", (req, res) => {
   const cardPeers = activePeers.get(cardId)!;
 
   // Check if we've reached max peers (excluding the registering peer)
-  if (!cardPeers.has(peerId) && cardPeers.size >= 6) {
+  const maxPlayers = Number(process.env.MAX_PLAYERS_PER_CARD) || 6;
+  if (!cardPeers.has(peerId) && cardPeers.size >= maxPlayers) {
     return res
       .status(429)
       .json({ message: "Maximum peers reached for this card" });

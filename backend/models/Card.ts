@@ -18,7 +18,7 @@ const cardSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 25,
+      maxlength: Number(process.env.CARD_TITLE_MAX_LENGTH) || 25,
     },
     createdBy: {
       type: String,

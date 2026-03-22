@@ -46,7 +46,7 @@ function TileEditorModal({ tile, onSave, onClose }: TileEditorModalProps) {
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder={`Tile ${tile.position + 1}`}
-              maxLength={40}
+              maxLength={Number(import.meta.env.VITE_TILE_MAX_LENGTH) || 40}
               rows={6}
               autoFocus
               className="tile-editor-textarea"

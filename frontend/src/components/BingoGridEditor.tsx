@@ -46,7 +46,7 @@ function BingoGridEditor({
             value={tile.value}
             onChange={(e) => onTileChange(index, e.target.value)}
             placeholder={`Tile ${index + 1}`}
-            maxLength={40}
+            maxLength={Number(import.meta.env.VITE_TILE_MAX_LENGTH) || 40}
             rows={3}
             readOnly={onTileClick && isMobile()}
           />

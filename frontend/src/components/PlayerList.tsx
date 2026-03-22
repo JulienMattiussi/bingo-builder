@@ -61,8 +61,12 @@ function PlayerList({ players, totalTiles }: PlayerListProps) {
           );
         })}
       </div>
-      {players.length >= 6 && (
-        <p className="player-list-note">Maximum players reached (6)</p>
+      {players.length >=
+        Number(import.meta.env.VITE_MAX_PLAYERS_PER_CARD || 6) && (
+        <p className="player-list-note">
+          Maximum players reached (
+          {import.meta.env.VITE_MAX_PLAYERS_PER_CARD || 6})
+        </p>
       )}
     </div>
   );

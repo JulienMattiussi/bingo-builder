@@ -220,7 +220,9 @@ function Profile() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Enter new name..."
-                maxLength={10}
+                maxLength={
+                  Number(import.meta.env.VITE_PLAYER_NAME_MAX_LENGTH) || 10
+                }
                 className="title-input"
                 autoFocus
                 onKeyPress={(e) => e.key === "Enter" && handleUpdateName()}

@@ -1,11 +1,13 @@
 const PLAYER_NAME_KEY = "bingo-player-name";
+const MAX_PLAYER_NAME_LENGTH =
+  Number(import.meta.env.VITE_PLAYER_NAME_MAX_LENGTH) || 10;
 
 export const playerNameUtils = {
   // Validate player name format
   isValidName(name: string): boolean {
     // Only letters, digits, - and _
-    // Maximum 10 characters
-    const regex = /^[a-zA-Z0-9_-]{1,10}$/;
+    // Maximum length from env variable
+    const regex = new RegExp(`^[a-zA-Z0-9_-]{1,${MAX_PLAYER_NAME_LENGTH}}$`);
     return regex.test(name);
   },
 

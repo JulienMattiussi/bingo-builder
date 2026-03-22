@@ -8,7 +8,8 @@ import peerRoutes from "./routes/peers.js";
 // Only load .env file in non-test environments
 // This prevents .env from overriding test environment variables
 if (process.env.NODE_ENV !== "test") {
-  dotenv.config();
+  // Load .env from root directory (one level up)
+  dotenv.config({ path: "../.env" });
 }
 
 const app = express();
