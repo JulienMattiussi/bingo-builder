@@ -6,17 +6,10 @@ import { createPeerConnection } from "../utils/peerConnection";
 import NotificationContainer from "../components/Notification";
 import PlayerList from "../components/PlayerList";
 import MobileActionBar from "../components/MobileActionBar";
-import { Card, Tile, Notification } from "../types/models";
+import { Card, Tile, Notification, PlayerData } from "../types/models";
 
 interface NotificationWithLocalId extends Omit<Notification, "id"> {
   id: number;
-}
-
-interface Player {
-  peerId: string;
-  name: string;
-  checkedCount: number;
-  isMe: boolean;
 }
 
 function PlayCard() {
@@ -31,7 +24,7 @@ function PlayCard() {
   const [notifications, setNotifications] = useState<NotificationWithLocalId[]>(
     [],
   );
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<PlayerData[]>([]);
   const [isPeerConnected, setIsPeerConnected] = useState(false);
   // Player list is hidden by default on mobile, can be toggled open
   const [isPlayerListOpen, setIsPlayerListOpen] = useState(false);

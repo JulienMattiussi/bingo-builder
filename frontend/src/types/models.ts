@@ -30,21 +30,6 @@ export interface Notification {
   tilePosition?: number;
 }
 
-export interface PeerData {
-  type: string;
-  playerName?: string;
-  checkedTiles?: number[];
-  position?: number;
-  [key: string]: unknown;
-}
-
-export interface PlayerInfo {
-  id: string;
-  name: string;
-  checkedTiles: number[];
-  isWinner: boolean;
-}
-
 export interface PeerMessage {
   type:
     | "player-join"

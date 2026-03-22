@@ -1,9 +1,4 @@
-interface PlayerData {
-  peerId: string;
-  name: string;
-  checkedCount: number;
-  isMe: boolean;
-}
+import { PlayerData } from "../types/models";
 
 interface PlayerListProps {
   players: PlayerData[];

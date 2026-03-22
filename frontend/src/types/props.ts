@@ -1,4 +1,4 @@
-import { Card, CardProgress, Tile, Notification, PlayerInfo } from "./models";
+import { Card, CardProgress, Tile, Notification } from "./models";
 
 // BingoCardItem props
 export interface BingoCardItemProps {
@@ -88,11 +88,4 @@ export interface TileEditorModalProps {
   tile: Tile | null;
   onSave: (position: number, value: string) => void;
   onClose: () => void;
-}
-
-// PlayerList props
-export interface PlayerListProps {
-  players: PlayerInfo[];
-  currentPlayerId: string;
-  card: Card;
 }
