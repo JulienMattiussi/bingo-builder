@@ -70,7 +70,7 @@ function CreateCard() {
     try {
       setSaving(true);
       setError(null);
-      const card = await api.createCard({
+      await api.createCard({
         title: title.trim(),
         createdBy: playerName.trim(),
         rows,

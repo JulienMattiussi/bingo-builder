@@ -246,7 +246,7 @@ function Profile() {
             <p style={{ color: "#7f8c8d" }}>Loading...</p>
           ) : ownedCards.length === 0 ? (
             <p style={{ color: "#7f8c8d" }}>
-              You haven't created any bingo cards yet.{" "}
+              You haven&apos;t created any bingo cards yet.{" "}
               <Link to="/create" style={{ color: "#3498db" }}>
                 Create one now!
               </Link>
@@ -282,7 +282,7 @@ function Profile() {
             <p style={{ color: "#7f8c8d" }}>Loading...</p>
           ) : playedCards.length === 0 ? (
             <p style={{ color: "#7f8c8d" }}>
-              You haven't played any bingo cards yet.
+              You haven&apos;t played any bingo cards yet.
             </p>
           ) : (
             <div className="card-list">

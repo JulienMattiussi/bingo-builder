@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
 import { useCardProgress } from "../hooks/useCardProgress";
@@ -14,6 +13,8 @@ function Home() {
 
   useEffect(() => {
     loadCards();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadCards = async () => {

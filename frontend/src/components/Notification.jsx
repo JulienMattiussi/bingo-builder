@@ -15,7 +15,7 @@ function Notification({ notification, onClose }) {
 
   if (!notification) return null;
 
-  const { type, playerName, message } = notification;
+  const { type, message } = notification;
   const isWin = type === "player-won";
   const isUnvalidated = type === "tile-unvalidated";
 
@@ -48,7 +48,7 @@ function Notification({ notification, onClose }) {
 function NotificationContainer({ notifications, onDismiss }) {
   return (
     <div className="notification-container">
-      {notifications.map((notification, index) => (
+      {notifications.map((notification) => (
         <Notification
           key={notification.id}
           notification={notification}

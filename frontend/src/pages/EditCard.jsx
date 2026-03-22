@@ -32,7 +32,8 @@ function EditCard() {
       setPlayerName(existingName);
       setHasAskedName(true);
     }
-  }, [id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, setHasAskedName, setPlayerName]);
 
   const loadCard = async () => {
     try {

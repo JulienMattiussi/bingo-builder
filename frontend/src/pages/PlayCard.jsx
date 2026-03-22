@@ -46,13 +46,17 @@ function PlayCard() {
         peerConnectionRef.current.disconnect();
       }
     };
-  }, [id]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, setPlayerName, setShowNameModal]);
 
   // Initialize peer connection when both card and playerName are available
   useEffect(() => {
     if (card && playerName && !peerConnectionRef.current && !showNameModal) {
       initializePeerConnection();
     }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card, playerName, showNameModal]);
 
   const initializePeerConnection = async () => {
