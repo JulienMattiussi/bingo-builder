@@ -1,9 +1,17 @@
 import express from "express";
+import { z } from "zod";
 import Card from "../models/Card.js";
 import {
   writeOperationsLimiter,
   listOperationsLimiter,
 } from "../middleware/rateLimiter.js";
+import {
+  CardInputSchema,
+  CardUpdateSchema,
+  OwnershipSchema,
+  DeleteByCreatorSchema,
+  UpdateCreatorSchema,
+} from "../schemas/card.js";
 
 const router = express.Router();
 
@@ -32,33 +40,28 @@ router.get("/:id", async (req, res) => {
 
 // Create a new card (stricter rate limit for write operations)
 router.post("/", writeOperationsLimiter, async (req, res) => {
-  const { title, createdBy, rows, columns, tiles } = req.body;
-
-  // Validate required fields
-  if (!title || !rows || !columns || !tiles) {
-    return res.status(400).json({ message: "Missing required fields" });
-  }
-
-  // Validate tiles count
-  if (tiles.length !== rows * columns) {
-    return res.status(400).json({
-      message: `Number of tiles (${tiles.length}) must match grid size (${rows}x${columns} = ${rows * columns})`,
-    });
-  }
-
   try {
+    // Validate with Zod - already validated by OpenAPI but gives better type inference
+    const validated = CardInputSchema.parse(req.body);
+
     const card = new Card({
-      title,
-      createdBy: createdBy || "",
-      rows,
-      columns,
-      tiles,
+      title: validated.title,
+      createdBy: validated.createdBy || "",
+      rows: validated.rows,
+      columns: validated.columns,
+      tiles: validated.tiles,
       isPublished: false,
     });
 
     const newCard = await card.save();
     res.status(201).json(newCard);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: error.issues,
+      });
+    }
     res.status(400).json({ message: (error as Error).message });
   }
 });
@@ -66,6 +69,9 @@ router.post("/", writeOperationsLimiter, async (req, res) => {
 // Update a card (stricter rate limit for write operations)
 router.put("/:id", writeOperationsLimiter, async (req, res) => {
   try {
+    // Validate with Zod
+    const validated = CardUpdateSchema.parse(req.body);
+
     const card = await Card.findById(req.params.id);
     if (!card) {
       return res.status(404).json({ message: "Card not found" });
@@ -77,36 +83,39 @@ router.put("/:id", writeOperationsLimiter, async (req, res) => {
     }
 
     // Check ownership
-    const { createdBy: requestCreatedBy } = req.body;
     if (
       card.createdBy &&
-      requestCreatedBy &&
-      card.createdBy !== requestCreatedBy
+      validated.createdBy &&
+      card.createdBy !== validated.createdBy
     ) {
       return res
         .status(403)
         .json({ message: "You are not the owner of this card" });
     }
 
-    const { title, createdBy, rows, columns, tiles } = req.body;
-
-    if (title) card.title = title;
-    if (createdBy !== undefined) card.createdBy = createdBy;
-    if (rows) card.rows = rows;
-    if (columns) card.columns = columns;
-    if (tiles) {
+    if (validated.title) card.title = validated.title;
+    if (validated.createdBy !== undefined) card.createdBy = validated.createdBy;
+    if (validated.rows) card.rows = validated.rows;
+    if (validated.columns) card.columns = validated.columns;
+    if (validated.tiles) {
       // Validate tiles count if updating
-      if (tiles.length !== card.rows * card.columns) {
+      if (validated.tiles.length !== card.rows * card.columns) {
         return res.status(400).json({
-          message: `Number of tiles (${tiles.length}) must match grid size (${card.rows}x${card.columns} = ${card.rows * card.columns})`,
+          message: `Number of tiles (${validated.tiles.length}) must match grid size (${card.rows}x${card.columns} = ${card.rows * card.columns})`,
         });
       }
-      card.tiles = tiles;
+      card.tiles = validated.tiles as any;
     }
 
     const updatedCard = await card.save();
     res.json(updatedCard);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: error.issues,
+      });
+    }
     res.status(400).json({ message: (error as Error).message });
   }
 });
@@ -114,6 +123,9 @@ router.put("/:id", writeOperationsLimiter, async (req, res) => {
 // Publish a card (stricter rate limit for write operations)
 router.post("/:id/publish", writeOperationsLimiter, async (req, res) => {
   try {
+    // Validate with Zod
+    const { createdBy } = OwnershipSchema.parse(req.body || {});
+
     const card = await Card.findById(req.params.id);
     if (!card) {
       return res.status(404).json({ message: "Card not found" });
@@ -124,7 +136,6 @@ router.post("/:id/publish", writeOperationsLimiter, async (req, res) => {
     }
 
     // Check ownership
-    const { createdBy } = req.body;
     if (card.createdBy && createdBy && card.createdBy !== createdBy) {
       return res
         .status(403)
@@ -146,6 +157,12 @@ router.post("/:id/publish", writeOperationsLimiter, async (req, res) => {
     const publishedCard = await card.save();
     res.json(publishedCard);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: error.issues,
+      });
+    }
     res.status(500).json({ message: (error as Error).message });
   }
 });
@@ -153,6 +170,9 @@ router.post("/:id/publish", writeOperationsLimiter, async (req, res) => {
 // Unpublish a card (stricter rate limit for write operations)
 router.post("/:id/unpublish", writeOperationsLimiter, async (req, res) => {
   try {
+    // Validate with Zod
+    const { createdBy } = OwnershipSchema.parse(req.body || {});
+
     const card = await Card.findById(req.params.id);
     if (!card) {
       return res.status(404).json({ message: "Card not found" });
@@ -163,7 +183,6 @@ router.post("/:id/unpublish", writeOperationsLimiter, async (req, res) => {
     }
 
     // Check ownership
-    const { createdBy } = req.body;
     if (card.createdBy && createdBy && card.createdBy !== createdBy) {
       return res
         .status(403)
@@ -175,6 +194,12 @@ router.post("/:id/unpublish", writeOperationsLimiter, async (req, res) => {
     const unpublishedCard = await card.save();
     res.json(unpublishedCard);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: error.issues,
+      });
+    }
     res.status(500).json({ message: (error as Error).message });
   }
 });
@@ -211,11 +236,8 @@ router.delete("/:id", writeOperationsLimiter, async (req, res) => {
 // Delete all cards by creator (stricter rate limit)
 router.post("/delete-by-creator", writeOperationsLimiter, async (req, res) => {
   try {
-    const { createdBy } = req.body;
-
-    if (!createdBy || !createdBy.trim()) {
-      return res.status(400).json({ message: "Creator name is required" });
-    }
+    // Validate with Zod
+    const { createdBy } = DeleteByCreatorSchema.parse(req.body);
 
     // Delete all cards created by this user
     const result = await Card.deleteMany({ createdBy: createdBy.trim() });
@@ -225,6 +247,12 @@ router.post("/delete-by-creator", writeOperationsLimiter, async (req, res) => {
       deletedCount: result.deletedCount,
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: error.issues,
+      });
+    }
     res.status(500).json({ message: (error as Error).message });
   }
 });
@@ -232,13 +260,8 @@ router.post("/delete-by-creator", writeOperationsLimiter, async (req, res) => {
 // Update creator name for all cards (stricter rate limit)
 router.post("/update-creator", writeOperationsLimiter, async (req, res) => {
   try {
-    const { oldName, newName } = req.body;
-
-    if (!oldName || !oldName.trim() || !newName || !newName.trim()) {
-      return res
-        .status(400)
-        .json({ message: "Both old and new names are required" });
-    }
+    // Validate with Zod
+    const { oldName, newName } = UpdateCreatorSchema.parse(req.body);
 
     // Update all cards with the old creator name
     const result = await Card.updateMany(
@@ -251,6 +274,12 @@ router.post("/update-creator", writeOperationsLimiter, async (req, res) => {
       modifiedCount: result.modifiedCount,
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: error.issues,
+      });
+    }
     res.status(500).json({ message: (error as Error).message });
   }
 });

@@ -465,7 +465,140 @@ describe("Feature Name", () => {
 
 ---
 
-## 📱 Frontend Responsive Design
+## � API Validation with OpenAPI
+
+### OpenAPI Specification
+
+**Location**: `backend/openapi.yaml`
+
+**Purpose**: Provides machine-readable API documentation and automatic request validation.
+
+**What it defines**:
+- All API endpoints (paths, methods, parameters)
+- Request/response schemas with validation rules
+- Data types, formats, and constraints
+- Error responses
+- Security requirements
+
+### Automatic Validation
+
+**express-openapi-validator** middleware automatically validates:
+- Request body schemas (required fields, types, formats)
+- Path parameters (MongoDB ObjectId format, UUID format)
+- Query parameters (types, constraints)
+- Content-Type headers
+- String lengths, number ranges, array sizes
+
+**Configuration** ([backend/server.ts](backend/server.ts)):
+```typescript
+app.use(
+  OpenApiValidator.middleware({
+    apiSpec: path.join(__dirname, "openapi.yaml"),
+    validateRequests: true,
+    validateResponses: false, // Disabled for performance
+    validateApiSpec: true,
+  }),
+);
+```
+
+### Validation Rules
+
+From OpenAPI spec:
+- **Card title**: 1-25 characters
+- **Tile value**: max 40 characters
+- **Player name**: 1-10 characters
+- **Grid rows**: 2-5
+- **Grid columns**: 2-6
+- **Tiles array**: 4-30 items (must match rows × columns)
+- **Card ID**: 24-char hex (MongoDB ObjectId)
+- **Peer ID**: UUID v4 format
+
+### Error Responses
+
+Validation failures return **400 Bad Request**:
+```json
+{
+  "message": "request validation failed",
+  "errors": [
+    {
+      "path": ".body.title",
+      "message": "should NOT be longer than 25 characters",
+      "errorCode": "maxLength.openapi.validation"
+    }
+  ]
+}
+```
+
+### Adding New Endpoints
+
+When adding API endpoints:
+
+1. **Update OpenAPI spec** (`backend/openapi.yaml`):
+   - Add path definition
+   - Define request/response schemas
+   - Specify validation rules
+   - Document error responses
+
+2. **Example** - New endpoint definition:
+   ```yaml
+   /api/cards/search:
+     get:
+       summary: Search cards
+       parameters:
+         - name: query
+           in: query
+           required: true
+           schema:
+             type: string
+             minLength: 1
+             maxLength: 50
+       responses:
+         '200':
+           content:
+             application/json:
+               schema:
+                 type: array
+                 items:
+                   $ref: '#/components/schemas/Card'
+   ```
+
+3. **Implement route** (TypeScript):
+   ```typescript
+   router.get("/search", async (req, res) => {
+     const { query } = req.query; // Already validated by OpenAPI
+     const cards = await Card.find({ title: new RegExp(query, "i") });
+     res.json(cards);
+   });
+   ```
+
+4. **Test**:
+   - Verify TypeScript compiles: `npm run build`
+   - Run tests: `npm test`
+   - Test validation with invalid data
+
+### Rules for OpenAPI
+
+1. ✅ **DO**: Update OpenAPI spec before implementing new endpoints
+2. ✅ **DO**: Define strict validation rules (minLength, maxLength, minimum, maximum)
+3. ✅ **DO**: Use `$ref` for reusable schemas
+4. ✅ **DO**: Document all possible error responses
+5. ✅ **DO**: Test validation with invalid requests
+6. ❌ **DON'T**: Skip validation for "internal" endpoints
+7. ❌ **DON'T**: Duplicate validation logic in route handlers (let OpenAPI handle it)
+8. ❌ **DON'T**: Use loose schemas (no `additionalProperties: true` without reason)
+
+### Benefits
+
+- ✅ **Security**: Prevents injection attacks via strict schema validation
+- ✅ **Consistency**: Standardized error messages across all endpoints
+- ✅ **Documentation**: OpenAPI spec serves as API contract
+- ✅ **Type Safety**: Enforces data types and formats
+- ✅ **Less Code**: No manual validation in route handlers
+- ✅ **Early Detection**: Catches invalid requests before business logic
+
+---
+
+## �📱 Frontend Responsive Design
 
 ### Mobile-First Approach
 
@@ -679,6 +812,7 @@ Before submitting code, verify:
 - [ ] Responsive design tested on mobile viewport
 - [ ] Peer communication properly initialized and cleaned up
 - [ ] Rate limiting considerations for new endpoints
+- [ ] OpenAPI specification updated for new/modified endpoints
 - [ ] CORS configuration updated if needed
 - [ ] No `console.log` or debug code left in production code
 - [ ] Import paths use correct extensions (`.js` for backend ES modules)

@@ -1,6 +1,11 @@
 import express from "express";
+import { z } from "zod";
 import config from "../config/config.js";
 import { peerOperationsLimiter } from "../middleware/rateLimiter.js";
+import {
+  PeerRegistrationSchema,
+  PeerHeartbeatSchema,
+} from "../schemas/peer.js";
 
 const router = express.Router();
 
@@ -35,38 +40,49 @@ setInterval(() => {
 
 // Register or update a peer (rate limited to prevent flooding)
 router.post("/:cardId/register", peerOperationsLimiter, (req, res) => {
-  const cardId = String(req.params.cardId);
-  const { peerId, playerName, checkedCount = 0 } = req.body;
+  try {
+    const cardId = String(req.params.cardId);
+    const {
+      peerId,
+      playerName,
+      checkedCount = 0,
+    } = PeerRegistrationSchema.parse(req.body);
 
-  if (!peerId || !playerName) {
-    return res.status(400).json({ message: "Missing peerId or playerName" });
+    // Initialize card's peer set if it doesn't exist
+    if (!activePeers.has(cardId)) {
+      activePeers.set(cardId, new Map());
+    }
+
+    const cardPeers = activePeers.get(cardId)!;
+
+    // Check if we've reached max peers (excluding the registering peer)
+    const maxPlayers = config.get("limits.maxPlayersPerCard");
+    if (!cardPeers.has(peerId) && cardPeers.size >= maxPlayers) {
+      return res
+        .status(429)
+        .json({ message: "Maximum peers reached for this card" });
+    }
+
+    // Register/update peer
+    cardPeers.set(peerId, {
+      name: playerName,
+      timestamp: Date.now(),
+      checkedCount,
+    });
+
+    console.log(`Registered peer ${peerId} (${playerName}) for card ${cardId}`);
+
+    res.json({ success: true, activePeerCount: cardPeers.size });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: error.issues,
+      });
+    }
+    console.error("Error registering peer:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
-
-  // Initialize card's peer set if it doesn't exist
-  if (!activePeers.has(cardId)) {
-    activePeers.set(cardId, new Map());
-  }
-
-  const cardPeers = activePeers.get(cardId)!;
-
-  // Check if we've reached max peers (excluding the registering peer)
-  const maxPlayers = config.get("limits.maxPlayersPerCard");
-  if (!cardPeers.has(peerId) && cardPeers.size >= maxPlayers) {
-    return res
-      .status(429)
-      .json({ message: "Maximum peers reached for this card" });
-  }
-
-  // Register/update peer
-  cardPeers.set(peerId, {
-    name: playerName,
-    timestamp: Date.now(),
-    checkedCount,
-  });
-
-  console.log(`Registered peer ${peerId} (${playerName}) for card ${cardId}`);
-
-  res.json({ success: true, activePeerCount: cardPeers.size });
 });
 
 // Get list of active peers for a card (rate limited)
@@ -117,20 +133,31 @@ router.delete(
 
 // Heartbeat endpoint to keep peer alive (rate limited)
 router.post("/:cardId/heartbeat/:peerId", peerOperationsLimiter, (req, res) => {
-  const cardId = String(req.params.cardId);
-  const peerId = String(req.params.peerId);
-  const { checkedCount } = req.body;
+  try {
+    const cardId = String(req.params.cardId);
+    const peerId = String(req.params.peerId);
+    const { checkedCount } = PeerHeartbeatSchema.parse(req.body || {});
 
-  const cardPeers = activePeers.get(cardId);
-  if (cardPeers && cardPeers.has(peerId)) {
-    const peerData = cardPeers.get(peerId)!;
-    peerData.timestamp = Date.now();
-    if (checkedCount !== undefined) {
-      peerData.checkedCount = checkedCount;
+    const cardPeers = activePeers.get(cardId);
+    if (cardPeers && cardPeers.has(peerId)) {
+      const peerData = cardPeers.get(peerId)!;
+      peerData.timestamp = Date.now();
+      if (checkedCount !== undefined) {
+        peerData.checkedCount = checkedCount;
+      }
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ message: "Peer not found" });
     }
-    res.json({ success: true });
-  } else {
-    res.status(404).json({ message: "Peer not found" });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: error.issues,
+      });
+    }
+    console.error("Error updating peer heartbeat:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 

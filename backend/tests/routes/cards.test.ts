@@ -115,7 +115,8 @@ describe("Card Routes", () => {
       const response = await request(app).post("/api/cards").send(invalidData);
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toBe("Missing required fields");
+      expect(response.body.message).toBe("Validation failed");
+      expect(response.body.errors).toBeDefined();
     });
 
     it("should return 400 when tiles count does not match grid size", async () => {
@@ -132,7 +133,8 @@ describe("Card Routes", () => {
       const response = await request(app).post("/api/cards").send(invalidData);
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toContain("must match grid size");
+      expect(response.body.message).toBe("Validation failed");
+      expect(response.body.errors).toBeDefined();
     });
 
     it("should default createdBy to empty string if not provided", async () => {
@@ -250,7 +252,8 @@ describe("Card Routes", () => {
         });
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toContain("must match grid size");
+      expect(response.body.message).toBe("Validation failed");
+      expect(response.body.errors).toBeDefined();
     });
   });
 

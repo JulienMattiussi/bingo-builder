@@ -386,6 +386,105 @@ app.use(express.json({ limit: "1mb" }));
 
 This prevents attackers from sending extremely large payloads that could crash the server.
 
+### OpenAPI Request Validation
+
+The backend uses **express-openapi-validator** to automatically validate all API requests against the OpenAPI 3.0 specification.
+
+**Specification File**: `backend/openapi.yaml`
+
+**Configuration**:
+```typescript
+// backend/server.ts
+app.use(
+  OpenApiValidator.middleware({
+    apiSpec: path.join(__dirname, "openapi.yaml"),
+    validateRequests: true, // Validate request bodies, params, queries
+    validateResponses: false, // Disabled in production for performance
+    validateApiSpec: true, // Validate the spec file itself
+  }),
+);
+```
+
+**What it validates**:
+- ✅ **Request body schemas** - Ensures required fields are present and of correct type
+- ✅ **Path parameters** - Validates MongoDB ObjectId format, UUID format, etc.
+- ✅ **Query parameters** - Validates types and constraints
+- ✅ **Content types** - Ensures correct `Content-Type` headers
+- ✅ **Data types and formats** - String lengths, number ranges, date formats, etc.
+- ✅ **Required fields** - Rejects requests missing required properties
+
+**Example validations**:
+
+1. **Card creation** - Rejects invalid grid size:
+   ```json
+   {
+     "title": "My Card",
+     "rows": 10,  // ❌ Max is 5
+     "columns": 3,
+     "tiles": []
+   }
+   ```
+   **Response**: `400 Bad Request` with validation details
+
+2. **Peer registration** - Enforces player name length:
+   ```json
+   {
+     "peerId": "abc123",
+     "playerName": "VeryLongPlayerName"  // ❌ Max 10 chars
+   }
+   ```
+   **Response**: `400 Bad Request` with validation details
+
+3. **Card ID format** - Validates MongoDB ObjectId:
+   ```
+   GET /api/cards/invalid-id  // ❌ Not a valid ObjectId
+   ```
+   **Response**: `400 Bad Request`
+
+**Error Response Format**:
+```json
+{
+  "message": "request validation failed",
+  "errors": [
+    {
+      "path": ".body.title",
+      "message": "should NOT be longer than 25 characters",
+      "errorCode": "maxLength.openapi.validation"
+    }
+  ]
+}
+```
+
+**Validation Rules** (from OpenAPI spec):
+- **Card title**: 1-25 characters
+- **Tile value**: max 40 characters
+- **Player name**: 1-10 characters
+- **Grid rows**: 2-5
+- **Grid columns**: 2-6
+- **Tiles array**: 4-30 items (must match rows × columns)
+- **Card ID**: 24-character hex string (MongoDB ObjectId)
+- **Peer ID**: UUID v4 format
+
+**Benefits**:
+- ✅ **Automatic validation** - No manual validation code needed in routes
+- ✅ **Consistent error messages** - Standardized validation responses
+- ✅ **Type safety** - Enforces data types and formats
+- ✅ **Documentation** - OpenAPI spec serves as API documentation
+- ✅ **Prevents injection attacks** - Strict schema validation
+- ✅ **Catches errors early** - Rejects invalid requests before reaching business logic
+
+**Viewing the OpenAPI Spec**:
+The OpenAPI specification can be viewed using tools like:
+- [Swagger UI](https://swagger.io/tools/swagger-ui/)
+- [Redoc](https://redocly.com/redoc/)
+- VS Code extensions like "OpenAPI (Swagger) Editor"
+
+**Updating the spec**:
+When adding new endpoints or modifying request/response schemas:
+1. Update `backend/openapi.yaml`
+2. Run `npm run build` to verify TypeScript compiles
+3. Run `npm test` to ensure tests pass with new validation
+
 ### Rate Limiting
 
 The backend implements **multi-tier rate limiting** to protect against abuse and DDoS attacks:

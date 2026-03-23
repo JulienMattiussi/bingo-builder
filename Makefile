@@ -65,8 +65,10 @@ start-backend: ## Start the backend server
 start-frontend: ## Start the frontend application
 	cd frontend && npm run dev
 
-build: ## Build both backend and frontend for production
-	cd frontend && npm run build
+build: build-backend build-frontend ## Build both backend and frontend for production
+
+build-backend: ## Build backend (generate OpenAPI spec + compile TypeScript)
+	cd backend && npm run build
 
 build-frontend: ## Build frontend for production
 	cd frontend && npm run build

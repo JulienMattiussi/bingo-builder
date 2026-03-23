@@ -9,7 +9,7 @@ A full-stack web application to create and play bingo cards online with friends.
 - 🎮 **Play Online**: Share published cards with friends via URL
 - 💾 **Local Progress Tracking**: Your checked tiles are saved in your browser
 - 🗄️ **MongoDB Storage**: All cards are stored server-side in MongoDB
-- 🔒 **Security Features**: Rate limiting and CORS protection against API abuse
+- 🔒 **Security Features**: OpenAPI validation, rate limiting, and CORS protection against API abuse
 - 👥 **Multiplayer Support**: Real-time player tracking for shared games
 
 ## Tech Stack

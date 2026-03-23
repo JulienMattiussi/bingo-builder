@@ -1,10 +1,17 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import * as OpenApiValidator from "express-openapi-validator";
 import connectDB from "./config/db.js";
 import cardRoutes from "./routes/cards.js";
 import peerRoutes from "./routes/peers.js";
 import config from "./config/config.js";
 import { apiLimiter } from "./middleware/rateLimiter.js";
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = config.get("server.port");
@@ -23,6 +30,19 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" })); // Limit request body size
 
+// OpenAPI validation middleware
+app.use(
+  OpenApiValidator.middleware({
+    apiSpec: path.join(__dirname, "openapi.yaml"),
+    validateRequests: true, // Validate request bodies, params, queries
+    validateResponses: false, // Disable response validation in production (performance)
+    validateApiSpec: true, // Validate the spec file itself
+    $refParser: {
+      mode: "dereference",
+    },
+  }),
+);
+
 // Apply general rate limiting to all API routes
 app.use("/api/", apiLimiter);
 
@@ -34,6 +54,28 @@ app.use("/api/peers", peerRoutes);
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
+
+// OpenAPI validation error handler
+app.use(
+  (
+    err: any,
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction,
+  ) => {
+    // OpenAPI validation error
+    if (err.status) {
+      return res.status(err.status).json({
+        message: err.message,
+        errors: err.errors,
+      });
+    }
+    // Other errors
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  },
+);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
