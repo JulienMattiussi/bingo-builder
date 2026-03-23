@@ -88,13 +88,13 @@ VITE_MAX_PLAYERS_PER_CARD=6
 **Rules**:
 1. ✅ **DO**: Use `VITE_` prefix for shared values (ports, limits, feature flags)
 2. ✅ **DO**: Use plain names for backend-only secrets (database URIs, API keys)
-3. ✅ **DO**: Update both `.env` and `.env.test` when changing shared configuration
+3. ✅ **DO**: Update both `.env` and `.env.test` when changing shared configuration (and their `.example` counterparts)
 4. ❌ **DON'T**: Duplicate variables with and without `VITE_` prefix
 5. ❌ **DON'T**: Access `process.env` or `import.meta.env` directly - always use config classes
 
 **Adding New Configuration**:
 1. Add to `.env` and `.env.example` with `VITE_` prefix if shared
-2. Add to `.env.test` if needed for tests
+2. Add to `.env.test` and `.env.test.example` if needed for tests
 3. Update schema in `backend/config/config.ts` OR `frontend/src/config.ts`
 4. Add TypeScript types in `frontend/vite-env.d.ts` for frontend vars
 5. Update `Documentation/CONFIGURATION.md`
@@ -802,7 +802,7 @@ peerConnection.broadcastMessage("Bingo!");
 
 Before submitting code, verify:
 
-- [ ] Configuration changes updated in `.env`, `.env.example`, and schemas
+- [ ] Configuration changes updated in `.env`, `.env.example`, `.env.test`, `.env.test.example`, and schemas
 - [ ] Used Makefile commands instead of direct npm/docker commands
 - [ ] Documentation updated in `Documentation/` folder
 - [ ] All TypeScript files compile without errors

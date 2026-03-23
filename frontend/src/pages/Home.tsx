@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
 import { useCardProgress } from "../hooks/useCardProgress";
+import { useCardStats } from "../hooks/useCardStats";
 import BingoCardItem from "../components/BingoCardItem";
 import { Card } from "../types/models";
 
@@ -11,6 +12,7 @@ function Home() {
   const [error, setError] = useState<string | null>(null);
   const currentPlayerName = playerNameUtils.getPlayerName();
   const { getCardProgress } = useCardProgress();
+  const { stats, reload: reloadStats } = useCardStats();
 
   useEffect(() => {
     loadCards();
@@ -78,6 +80,7 @@ function Home() {
     try {
       await api.deleteCard(id, currentPlayerName);
       await loadCards();
+      reloadStats(); // Refresh stats after delete
     } catch (err) {
       alert((err as Error).message);
     }
@@ -94,6 +97,7 @@ function Home() {
     try {
       await api.unpublishCard(id, currentPlayerName);
       await loadCards();
+      reloadStats(); // Refresh stats after unpublish
     } catch (err) {
       alert((err as Error).message);
     }
@@ -125,6 +129,50 @@ function Home() {
     <div>
       <div style={{ marginBottom: "2rem" }}>
         <h1>Bingo Cards</h1>
+        {stats && (
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+              marginTop: "0.5rem",
+              flexWrap: "wrap",
+            }}
+          >
+            <div
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "0.5rem",
+                backgroundColor:
+                  stats.published >= stats.maxPublished
+                    ? "#fee"
+                    : stats.published / stats.maxPublished >= 0.8
+                      ? "#ffeaa7"
+                      : "#d5f4e6",
+                color: "#2c3e50",
+                fontSize: "0.9rem",
+              }}
+            >
+              <strong>Published:</strong> {stats.published}/{stats.maxPublished}
+            </div>
+            <div
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "0.5rem",
+                backgroundColor:
+                  stats.unpublished >= stats.maxUnpublished
+                    ? "#fee"
+                    : stats.unpublished / stats.maxUnpublished >= 0.8
+                      ? "#ffeaa7"
+                      : "#d5f4e6",
+                color: "#2c3e50",
+                fontSize: "0.9rem",
+              }}
+            >
+              <strong>Unpublished:</strong> {stats.unpublished}/
+              {stats.maxUnpublished}
+            </div>
+          </div>
+        )}
       </div>
 
       {cards.length === 0 ? (

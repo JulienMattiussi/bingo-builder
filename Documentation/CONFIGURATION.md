@@ -50,7 +50,9 @@ const maxPlayers = config.get("limits.maxPlayersPerCard"); // number
     cardTitleMaxLength: number (default: 25),
     tileMaxLength: number (default: 40),
     playerNameMaxLength: number (default: 10),
-    maxPlayersPerCard: number (default: 6)
+    maxPlayersPerCard: number (default: 6),
+    maxPublishedCards: number (default: 50),
+    maxUnpublishedCards: number (default: 50)
   }
 }
 ```
@@ -67,6 +69,8 @@ const maxPlayers = config.get("limits.maxPlayersPerCard"); // number
 | `VITE_TILE_MAX_LENGTH` | number | 40 | Maximum tile content length | ✅ |
 | `VITE_PLAYER_NAME_MAX_LENGTH` | number | 10 | Maximum player name length | ✅ |
 | `VITE_MAX_PLAYERS_PER_CARD` | number | 6 | Maximum players per card | ✅ |
+| `VITE_MAX_PUBLISHED_CARDS` | number | 50 | Maximum published cards in database | ✅ |
+| `VITE_MAX_UNPUBLISHED_CARDS` | number | 50 | Maximum unpublished cards in database | ✅ |
 | `RATE_LIMIT_API_WINDOW_MS` | number | 900000 | General API rate limit window (15 min default) | ❌ Backend-only |
 | `RATE_LIMIT_API_MAX` | number | 100 | Maximum general API requests per window | ❌ Backend-only |
 | `RATE_LIMIT_WRITE_WINDOW_MS` | number | 900000 | Write operations rate limit window (15 min default) | ❌ Backend-only |
@@ -115,6 +119,8 @@ All frontend environment variables use the `VITE_` prefix. These same variables 
 | `VITE_TILE_MAX_LENGTH` | number | 40 | Maximum tile content length |
 | `VITE_PLAYER_NAME_MAX_LENGTH` | number | 10 | Maximum player name length |
 | `VITE_MAX_PLAYERS_PER_CARD` | number | 6 | Maximum players per card |
+| `VITE_MAX_PUBLISHED_CARDS` | number | 50 | Maximum published cards in database |
+| `VITE_MAX_UNPUBLISHED_CARDS` | number | 50 | Maximum unpublished cards in database |
 
 ## .env File Structure
 
@@ -136,6 +142,8 @@ VITE_CARD_TITLE_MAX_LENGTH=25
 VITE_TILE_MAX_LENGTH=40
 VITE_PLAYER_NAME_MAX_LENGTH=10
 VITE_MAX_PLAYERS_PER_CARD=6
+VITE_MAX_PUBLISHED_CARDS=50
+VITE_MAX_UNPUBLISHED_CARDS=50
 
 # Rate Limiting (backend-only)
 # API: 100 requests per 15 minutes
@@ -170,6 +178,8 @@ VITE_CARD_TITLE_MAX_LENGTH=25
 VITE_TILE_MAX_LENGTH=40
 VITE_PLAYER_NAME_MAX_LENGTH=10
 VITE_MAX_PLAYERS_PER_CARD=6
+VITE_MAX_PUBLISHED_CARDS=50
+VITE_MAX_UNPUBLISHED_CARDS=50
 
 # Rate Limiting (backend-only) - same as dev/prod but disabled in tests via skip
 RATE_LIMIT_API_WINDOW_MS=900000

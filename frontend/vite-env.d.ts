@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   readonly VITE_TILE_MAX_LENGTH: string;
   readonly VITE_PLAYER_NAME_MAX_LENGTH: string;
   readonly VITE_MAX_PLAYERS_PER_CARD: string;
+  readonly VITE_MAX_PUBLISHED_CARDS: string;
+  readonly VITE_MAX_UNPUBLISHED_CARDS: string;
 }
 
 interface ImportMeta {

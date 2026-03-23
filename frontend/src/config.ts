@@ -11,6 +11,8 @@ interface ConfigSchema {
     tileMaxLength: number;
     playerNameMaxLength: number;
     maxPlayersPerCard: number;
+    maxPublishedCards: number;
+    maxUnpublishedCards: number;
   };
 }
 
@@ -35,6 +37,8 @@ class Config {
           10,
         ),
         maxPlayersPerCard: this.parseNumber("VITE_MAX_PLAYERS_PER_CARD", 6),
+        maxPublishedCards: this.parseNumber("VITE_MAX_PUBLISHED_CARDS", 50),
+        maxUnpublishedCards: this.parseNumber("VITE_MAX_UNPUBLISHED_CARDS", 50),
       },
     };
   }
@@ -111,6 +115,14 @@ class Config {
 
   get maxPlayersPerCard(): number {
     return this.config.limits.maxPlayersPerCard;
+  }
+
+  get maxPublishedCards(): number {
+    return this.config.limits.maxPublishedCards;
+  }
+
+  get maxUnpublishedCards(): number {
+    return this.config.limits.maxUnpublishedCards;
   }
 
   // Get entire config as readonly object

@@ -18,11 +18,27 @@ interface UpdateCardData {
   tiles: Array<{ value: string; position: number }>;
 }
 
+interface CardStats {
+  published: number;
+  unpublished: number;
+  maxPublished: number;
+  maxUnpublished: number;
+  canCreate: boolean;
+  canPublish: boolean;
+}
+
 export const api = {
   // Get all cards
   async getCards(): Promise<Card[]> {
     const response = await fetch(`${API_BASE_URL}/cards`);
     if (!response.ok) throw new Error("Failed to fetch cards");
+    return response.json();
+  },
+
+  // Get card statistics
+  async getCardStats(): Promise<CardStats> {
+    const response = await fetch(`${API_BASE_URL}/cards/stats/counts`);
+    if (!response.ok) throw new Error("Failed to fetch card stats");
     return response.json();
   },
 

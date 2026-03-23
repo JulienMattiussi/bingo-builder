@@ -61,6 +61,18 @@ const config = convict({
       default: 6,
       env: "VITE_MAX_PLAYERS_PER_CARD",
     },
+    maxPublishedCards: {
+      doc: "Maximum number of published cards in the database",
+      format: "nat",
+      default: 50,
+      env: "VITE_MAX_PUBLISHED_CARDS",
+    },
+    maxUnpublishedCards: {
+      doc: "Maximum number of unpublished cards in the database",
+      format: "nat",
+      default: 50,
+      env: "VITE_MAX_UNPUBLISHED_CARDS",
+    },
   },
   rateLimit: {
     apiWindowMs: {

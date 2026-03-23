@@ -1,6 +1,7 @@
 import express from "express";
 import { z } from "zod";
 import Card from "../models/Card.js";
+import config from "../config/config.js";
 import {
   writeOperationsLimiter,
   listOperationsLimiter,
@@ -25,6 +26,27 @@ router.get("/", listOperationsLimiter, async (_req, res) => {
   }
 });
 
+// Get card statistics (counts)
+router.get("/stats/counts", listOperationsLimiter, async (_req, res) => {
+  try {
+    const publishedCount = await Card.countDocuments({ isPublished: true });
+    const unpublishedCount = await Card.countDocuments({ isPublished: false });
+    const maxPublished = config.get("limits.maxPublishedCards");
+    const maxUnpublished = config.get("limits.maxUnpublishedCards");
+
+    res.json({
+      published: publishedCount,
+      unpublished: unpublishedCount,
+      maxPublished,
+      maxUnpublished,
+      canCreate: unpublishedCount < maxUnpublished,
+      canPublish: publishedCount < maxPublished,
+    });
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+});
+
 // Get a single card by ID
 router.get("/:id", async (req, res) => {
   try {
@@ -43,6 +65,17 @@ router.post("/", writeOperationsLimiter, async (req, res) => {
   try {
     // Validate with Zod - already validated by OpenAPI but gives better type inference
     const validated = CardInputSchema.parse(req.body);
+
+    // Check if unpublished card limit is reached
+    const unpublishedCount = await Card.countDocuments({ isPublished: false });
+    const maxUnpublished = config.get("limits.maxUnpublishedCards");
+    if (unpublishedCount >= maxUnpublished) {
+      return res.status(400).json({
+        message: `Maximum unpublished cards limit reached (${maxUnpublished}). Please publish or delete existing cards.`,
+        limit: maxUnpublished,
+        current: unpublishedCount,
+      });
+    }
 
     const card = new Card({
       title: validated.title,
@@ -104,7 +137,8 @@ router.put("/:id", writeOperationsLimiter, async (req, res) => {
           message: `Number of tiles (${validated.tiles.length}) must match grid size (${card.rows}x${card.columns} = ${card.rows * card.columns})`,
         });
       }
-      card.tiles = validated.tiles as any;
+      // Mongoose accepts the Zod validated tiles directly
+      card.tiles = validated.tiles as typeof card.tiles;
     }
 
     const updatedCard = await card.save();
@@ -149,6 +183,17 @@ router.post("/:id/publish", writeOperationsLimiter, async (req, res) => {
     if (emptyTiles.length > 0) {
       return res.status(400).json({
         message: `Cannot publish incomplete card. ${emptyTiles.length} tiles are still empty.`,
+      });
+    }
+
+    // Check if published card limit is reached
+    const publishedCount = await Card.countDocuments({ isPublished: true });
+    const maxPublished = config.get("limits.maxPublishedCards");
+    if (publishedCount >= maxPublished) {
+      return res.status(400).json({
+        message: `Maximum published cards limit reached (${maxPublished}). Please unpublish existing cards first.`,
+        limit: maxPublished,
+        current: publishedCount,
       });
     }
 

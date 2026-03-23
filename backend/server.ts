@@ -58,16 +58,21 @@ app.get("/api/health", (_req, res) => {
 // OpenAPI validation error handler
 app.use(
   (
-    err: any,
+    err: unknown,
     _req: express.Request,
     res: express.Response,
     _next: express.NextFunction,
   ) => {
     // OpenAPI validation error
-    if (err.status) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "status" in err &&
+      typeof err.status === "number"
+    ) {
       return res.status(err.status).json({
-        message: err.message,
-        errors: err.errors,
+        message: "message" in err ? err.message : "Validation error",
+        errors: "errors" in err ? err.errors : undefined,
       });
     }
     // Other errors

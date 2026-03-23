@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { useCardStats } from "./hooks/useCardStats";
 import Home from "./pages/Home";
 import CreateCard from "./pages/CreateCard";
 import EditCard from "./pages/EditCard";
@@ -7,6 +8,8 @@ import Profile from "./pages/Profile";
 import "./App.css";
 
 function App() {
+  const { stats } = useCardStats();
+
   return (
     <Router>
       <div className="app">
@@ -16,7 +19,25 @@ function App() {
           </Link>
           <div className="nav-links">
             <Link to="/">Home</Link>
-            <Link to="/create">Create Card</Link>
+            <Link
+              to="/create"
+              className={stats && !stats.canCreate ? "disabled-link" : ""}
+              onClick={(e) => {
+                if (stats && !stats.canCreate) {
+                  e.preventDefault();
+                  alert(
+                    `Maximum unpublished cards limit reached (${stats.maxUnpublished}/${stats.maxUnpublished}). Please publish or delete existing cards.`,
+                  );
+                }
+              }}
+              title={
+                stats && !stats.canCreate
+                  ? `Limit reached: ${stats.unpublished}/${stats.maxUnpublished} unpublished cards`
+                  : undefined
+              }
+            >
+              Create Card
+            </Link>
             <Link to="/profile">Profile</Link>
           </div>
         </nav>

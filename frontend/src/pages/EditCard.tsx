@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
+import { useCardStats } from "../hooks/useCardStats";
 import MobileActionBar from "../components/MobileActionBar";
 import CardNameModal from "../components/CardNameModal";
 import BingoGridControls from "../components/BingoGridControls";
@@ -12,6 +13,7 @@ import { Card, Tile } from "../types/models";
 function EditCard() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { stats, reload: reloadStats } = useCardStats();
   const [card, setCard] = useState<Card | null>(null);
   const [title, setTitle] = useState("");
   const [rows, setRows] = useState(4);
@@ -139,6 +141,14 @@ function EditCard() {
   };
 
   const handlePublish = async () => {
+    // Check card limits
+    if (stats && !stats.canPublish) {
+      setError(
+        `Maximum published cards limit reached (${stats.published}/${stats.maxPublished}). Please unpublish existing cards first.`,
+      );
+      return;
+    }
+
     // Check if all tiles are filled
     const emptyTiles = tiles.filter((t) => !t.value.trim());
     if (emptyTiles.length > 0) {
@@ -161,6 +171,7 @@ function EditCard() {
       setError(null);
       const currentPlayerName = playerNameUtils.getPlayerName();
       await api.publishCard(id!, currentPlayerName);
+      reloadStats(); // Refresh stats after publish
       navigate("/");
     } catch (err) {
       setError((err as Error).message);
@@ -214,11 +225,17 @@ function EditCard() {
           <button
             className="success"
             onClick={handlePublish}
-            disabled={saving || tiles.filter((t) => !t.value.trim()).length > 0}
+            disabled={
+              saving ||
+              tiles.filter((t) => !t.value.trim()).length > 0 ||
+              (stats ? !stats.canPublish : false)
+            }
             title={
-              tiles.filter((t) => !t.value.trim()).length > 0
-                ? "Fill all tiles to publish"
-                : ""
+              stats && !stats.canPublish
+                ? `Limit reached: ${stats.published}/${stats.maxPublished} published cards`
+                : tiles.filter((t) => !t.value.trim()).length > 0
+                  ? "Fill all tiles to publish"
+                  : ""
             }
           >
             {saving ? "Publishing..." : "Publish Card"}
@@ -246,13 +263,18 @@ function EditCard() {
             icon: "✅",
             label: saving ? "Publishing..." : "Publish",
             onClick: handlePublish,
-            disabled: saving || tiles.filter((t) => !t.value.trim()).length > 0,
+            disabled:
+              saving ||
+              tiles.filter((t) => !t.value.trim()).length > 0 ||
+              (stats ? !stats.canPublish : false),
             variant: "success",
             ariaLabel: "Publish card",
             title:
-              tiles.filter((t) => !t.value.trim()).length > 0
-                ? "Fill all tiles to publish"
-                : "",
+              stats && !stats.canPublish
+                ? `Limit reached: ${stats.published}/${stats.maxPublished} published cards`
+                : tiles.filter((t) => !t.value.trim()).length > 0
+                  ? "Fill all tiles to publish"
+                  : "",
           },
         ]}
       />
