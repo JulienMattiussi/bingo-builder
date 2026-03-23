@@ -11,9 +11,16 @@ const PORT = config.get("server.port");
 // Connect to MongoDB
 connectDB();
 
+// CORS configuration - restrict to frontend origin only
+const corsOptions = {
+  origin: config.get("server.corsOrigin"),
+  credentials: true, // Allow cookies/auth headers
+  optionsSuccessStatus: 200,
+};
+
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors(corsOptions));
+app.use(express.json({ limit: "1mb" })); // Limit request body size
 
 // Routes
 app.use("/api/cards", cardRoutes);

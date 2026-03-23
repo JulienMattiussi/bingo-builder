@@ -62,6 +62,7 @@ const maxPlayers = config.get("limits.maxPlayersPerCard"); // number
 | `NODE_ENV` | string | development | Application environment | ❌ |
 | `VITE_API_PORT` | number | 3001 | Server port | ✅ |
 | `MONGODB_URI` | string | mongodb://localhost:27017/bingo-builder | MongoDB connection URI (environment file determines dev vs test) | ❌ Backend-only |
+| `CORS_ORIGIN` | string | http://localhost:3000 | Allowed CORS origin (frontend URL) | ❌ Backend-only |
 | `VITE_CARD_TITLE_MAX_LENGTH` | number | 25 | Maximum card title length | ✅ |
 | `VITE_TILE_MAX_LENGTH` | number | 40 | Maximum tile content length | ✅ |
 | `VITE_PLAYER_NAME_MAX_LENGTH` | number | 10 | Maximum player name length | ✅ |
@@ -115,6 +116,7 @@ All frontend environment variables use the `VITE_` prefix. These same variables 
 # Backend-only Configuration
 # These are NOT exposed to the frontend for security
 MONGODB_URI=mongodb://localhost:27017/bingo-builder
+CORS_ORIGIN=http://localhost:3000
 
 # Shared Configuration (VITE_ prefix)
 # These are used by both frontend and backend
@@ -135,6 +137,7 @@ Tests use a separate `.env.test` file (see [Testing](#testing) section for detai
 ```env
 # Test Database (isolated on port 27018)
 MONGODB_URI=mongodb://localhost:27018/bingo-test
+CORS_ORIGIN=http://localhost:5173
 
 # Test Server Ports (different from development)
 VITE_API_PORT=3002
@@ -178,6 +181,7 @@ Tests use a separate `.env.test` file with test-specific settings:
 ```env
 # Test Database (port 27018 - isolated from development)
 MONGODB_URI=mongodb://localhost:27018/bingo-test
+CORS_ORIGIN=http://localhost:5173
 
 # Test Server Ports (different from development)
 VITE_API_PORT=3002
@@ -281,3 +285,92 @@ const maxLength = config.cardTitleMaxLength;
 - Ensure test environment variables are set correctly
 - Check that test database is running (MongoDB on port 27018)
 - Verify `NODE_ENV=test` is set for test runs
+
+## Security Configuration
+
+### CORS (Cross-Origin Resource Sharing)
+
+The backend uses a **restricted CORS policy** to prevent unauthorized access from unknown origins.
+
+**Configuration**:
+```typescript
+// backend/server.ts
+const corsOptions = {
+  origin: config.get("server.corsOrigin"), // Only allow specific origin
+  credentials: true, // Allow cookies/auth headers
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+```
+
+**Environment Variable**:
+- `CORS_ORIGIN` - The allowed frontend URL (e.g., `http://localhost:3000` for dev)
+
+**Production Setup**:
+```env
+# Production .env
+CORS_ORIGIN=https://yourdomain.com
+```
+
+**Multiple Origins** (if needed):
+Update `backend/server.ts` to accept an array or use wildcards carefully:
+```typescript
+const corsOptions = {
+  origin: [
+    config.get("server.corsOrigin"),
+    "https://app.yourdomain.com",
+    "https://www.yourdomain.com"
+  ],
+  credentials: true,
+};
+```
+
+**Security Benefits**:
+- ✅ Prevents unauthorized domains from accessing your API
+- ✅ Protects against CSRF attacks from malicious sites
+- ✅ Requires explicit configuration for each environment
+- ✅ Works with authentication cookies and headers
+
+**Testing CORS**:
+```bash
+# Should succeed (correct origin)
+curl -H "Origin: http://localhost:3000" \
+     -H "Access-Control-Request-Method: POST" \
+     -X OPTIONS http://localhost:3001/api/cards
+
+# Should fail (wrong origin)
+curl -H "Origin: http://evil-site.com" \
+     -H "Access-Control-Request-Method: POST" \
+     -X OPTIONS http://localhost:3001/api/cards
+```
+
+### Request Body Size Limit
+
+The backend limits request body size to prevent memory exhaustion attacks:
+
+```typescript
+app.use(express.json({ limit: "1mb" }));
+```
+
+This prevents attackers from sending extremely large payloads that could crash the server.
+
+### Backend-Only Variables
+
+Variables without the `VITE_` prefix are **never exposed** to the frontend bundle:
+- `MONGODB_URI` - Database connection string (contains credentials in production)
+- `CORS_ORIGIN` - Allowed frontend URL
+
+**Why this matters**: Vite only includes `VITE_*` variables in the client bundle, preventing accidental exposure of sensitive data.
+
+### Production Checklist
+
+Before deploying to production:
+
+- [ ] Set `CORS_ORIGIN` to your production frontend URL
+- [ ] Set `MONGODB_URI` with authentication credentials
+- [ ] Set `NODE_ENV=production`
+- [ ] Use HTTPS for both frontend and backend
+- [ ] Review all environment variables in `.env.example`
+- [ ] Never commit actual `.env` files to version control
+- [ ] Use a secrets manager for production (AWS Secrets Manager, HashiCorp Vault, etc.)
+

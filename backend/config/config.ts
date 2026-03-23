@@ -21,6 +21,12 @@ const config = convict({
       default: 3001,
       env: "VITE_API_PORT",
     },
+    corsOrigin: {
+      doc: "Allowed CORS origin (frontend URL)",
+      format: String,
+      default: "http://localhost:3000",
+      env: "CORS_ORIGIN",
+    },
   },
   database: {
     uri: {

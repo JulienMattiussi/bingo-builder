@@ -45,6 +45,7 @@ const apiUrl = config.apiUrl;
 ```env
 # Backend-only (security-sensitive, NOT exposed to client)
 MONGODB_URI=mongodb://localhost:27017/bingo-builder
+CORS_ORIGIN=http://localhost:3000
 
 # Shared (VITE_ prefix - readable by both frontend and backend)
 VITE_API_PORT=3001
@@ -59,6 +60,7 @@ VITE_MAX_PLAYERS_PER_CARD=6
 ```env
 # Test Database (isolated on port 27018)
 MONGODB_URI=mongodb://localhost:27018/bingo-test
+CORS_ORIGIN=http://localhost:5173
 
 # Test Server Ports (different from development)
 VITE_API_PORT=3002

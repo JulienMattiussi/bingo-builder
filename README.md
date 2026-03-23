@@ -217,6 +217,7 @@ All configuration is stored in `.env` files at the root of the project:
 
 **Backend-only Variables (security-sensitive):**
 - `MONGODB_URI` - MongoDB connection string (environment file determines dev vs test database)
+- `CORS_ORIGIN` - Allowed CORS origin (frontend URL, default: http://localhost:3000)
 
 **Shared Variables (VITE_ prefix - used by both frontend and backend):**
 - `VITE_API_PORT` - Backend server port (default: 3001)
