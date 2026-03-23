@@ -67,6 +67,14 @@ const maxPlayers = config.get("limits.maxPlayersPerCard"); // number
 | `VITE_TILE_MAX_LENGTH` | number | 40 | Maximum tile content length | ✅ |
 | `VITE_PLAYER_NAME_MAX_LENGTH` | number | 10 | Maximum player name length | ✅ |
 | `VITE_MAX_PLAYERS_PER_CARD` | number | 6 | Maximum players per card | ✅ |
+| `RATE_LIMIT_API_WINDOW_MS` | number | 900000 | General API rate limit window (15 min default) | ❌ Backend-only |
+| `RATE_LIMIT_API_MAX` | number | 100 | Maximum general API requests per window | ❌ Backend-only |
+| `RATE_LIMIT_WRITE_WINDOW_MS` | number | 900000 | Write operations rate limit window (15 min default) | ❌ Backend-only |
+| `RATE_LIMIT_WRITE_MAX` | number | 30 | Maximum write requests per window | ❌ Backend-only |
+| `RATE_LIMIT_PEER_WINDOW_MS` | number | 60000 | Peer operations rate limit window (1 min default) | ❌ Backend-only |
+| `RATE_LIMIT_PEER_MAX` | number | 60 | Maximum peer requests per window | ❌ Backend-only |
+| `RATE_LIMIT_LIST_WINDOW_MS` | number | 60000 | List operations rate limit window (1 min default) | ❌ Backend-only |
+| `RATE_LIMIT_LIST_MAX` | number | 20 | Maximum list requests per window | ❌ Backend-only |
 
 ## Frontend Configuration
 
@@ -128,6 +136,20 @@ VITE_CARD_TITLE_MAX_LENGTH=25
 VITE_TILE_MAX_LENGTH=40
 VITE_PLAYER_NAME_MAX_LENGTH=10
 VITE_MAX_PLAYERS_PER_CARD=6
+
+# Rate Limiting (backend-only)
+# API: 100 requests per 15 minutes
+RATE_LIMIT_API_WINDOW_MS=900000
+RATE_LIMIT_API_MAX=100
+# Write operations: 30 requests per 15 minutes
+RATE_LIMIT_WRITE_WINDOW_MS=900000
+RATE_LIMIT_WRITE_MAX=30
+# Peer operations: 60 requests per minute
+RATE_LIMIT_PEER_WINDOW_MS=60000
+RATE_LIMIT_PEER_MAX=60
+# List operations: 20 requests per minute
+RATE_LIMIT_LIST_WINDOW_MS=60000
+RATE_LIMIT_LIST_MAX=20
 ```
 
 ### Test Configuration (.env.test)
@@ -148,6 +170,16 @@ VITE_CARD_TITLE_MAX_LENGTH=25
 VITE_TILE_MAX_LENGTH=40
 VITE_PLAYER_NAME_MAX_LENGTH=10
 VITE_MAX_PLAYERS_PER_CARD=6
+
+# Rate Limiting (backend-only) - same as dev/prod but disabled in tests via skip
+RATE_LIMIT_API_WINDOW_MS=900000
+RATE_LIMIT_API_MAX=100
+RATE_LIMIT_WRITE_WINDOW_MS=900000
+RATE_LIMIT_WRITE_MAX=30
+RATE_LIMIT_PEER_WINDOW_MS=60000
+RATE_LIMIT_PEER_MAX=60
+RATE_LIMIT_LIST_WINDOW_MS=60000
+RATE_LIMIT_LIST_MAX=20
 ```
 
 ### File Overview
@@ -354,13 +386,134 @@ app.use(express.json({ limit: "1mb" }));
 
 This prevents attackers from sending extremely large payloads that could crash the server.
 
+### Rate Limiting
+
+The backend implements **multi-tier rate limiting** to protect against abuse and DDoS attacks:
+
+**Implementation**: `backend/middleware/rateLimiter.ts`
+
+#### Rate Limit Tiers
+
+1. **General API Limiter** (applies to all `/api/` routes)
+   - **Default Limit**: 100 requests per 15 minutes per IP
+   - **Configuration**: `RATE_LIMIT_API_WINDOW_MS`, `RATE_LIMIT_API_MAX`
+   - **Purpose**: Prevents general API abuse
+   - **Applied to**: All API endpoints by default
+
+2. **Write Operations Limiter** (stricter for data modification)
+   - **Default Limit**: 30 requests per 15 minutes per IP
+   - **Configuration**: `RATE_LIMIT_WRITE_WINDOW_MS`, `RATE_LIMIT_WRITE_MAX`
+   - **Purpose**: Prevents spam card creation/updates
+   - **Applied to**: POST, PUT, DELETE operations on `/api/cards`
+   - **Endpoints**:
+     - `POST /api/cards` - Create card
+     - `PUT /api/cards/:id` - Update card
+     - `POST /api/cards/:id/publish` - Publish card
+     - `POST /api/cards/:id/unpublish` - Unpublish card
+     - `DELETE /api/cards/:id` - Delete card
+     - `POST /api/cards/delete-by-creator` - Bulk delete
+     - `POST /api/cards/update-creator` - Bulk update
+
+3. **Peer Operations Limiter** (prevents multiplayer flooding)
+   - **Default Limit**: 60 requests per minute per IP
+   - **Configuration**: `RATE_LIMIT_PEER_WINDOW_MS`, `RATE_LIMIT_PEER_MAX`
+   - **Purpose**: Prevents peer registration spam
+   - **Applied to**: All `/api/peers` operations
+   - **Endpoints**:
+     - `POST /api/peers/:cardId/register` - Register peer
+     - `GET /api/peers/:cardId/peers` - Get peer list
+     - `POST /api/peers/:cardId/heartbeat/:peerId` - Heartbeat
+     - `DELETE /api/peers/:cardId/unregister/:peerId` - Unregister
+
+4. **List Operations Limiter** (prevents scraping)
+   - **Default Limit**: 20 requests per minute per IP
+   - **Configuration**: `RATE_LIMIT_LIST_WINDOW_MS`, `RATE_LIMIT_LIST_MAX`
+   - **Purpose**: Prevents automated card scraping
+   - **Applied to**: `GET /api/cards` - List all cards
+
+#### Rate Limit Response
+
+When rate limit is exceeded:
+```json
+{
+  "message": "Too many requests from this IP, please try again later."
+}
+```
+
+**Status Code**: `429 Too Many Requests`
+
+**Headers**:
+- `RateLimit-Limit` - Maximum requests allowed
+- `RateLimit-Remaining` - Requests remaining in window
+- `RateLimit-Reset` - Time when limit resets (Unix timestamp)
+
+#### Testing Rate Limits
+
+Rate limits are **automatically disabled** in test environment (`NODE_ENV=test`) to avoid breaking tests.
+
+#### Production Tuning
+
+All rate limit values are **configurable via environment variables**. Adjust limits by setting these variables in your production `.env` file:
+
+**Environment Variables**:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `RATE_LIMIT_API_WINDOW_MS` | 900000 (15 min) | General API rate limit window in milliseconds |
+| `RATE_LIMIT_API_MAX` | 100 | Maximum general API requests per window |
+| `RATE_LIMIT_WRITE_WINDOW_MS` | 900000 (15 min) | Write operations rate limit window |
+| `RATE_LIMIT_WRITE_MAX` | 30 | Maximum write requests per window |
+| `RATE_LIMIT_PEER_WINDOW_MS` | 60000 (1 min) | Peer operations rate limit window |
+| `RATE_LIMIT_PEER_MAX` | 60 | Maximum peer requests per window |
+| `RATE_LIMIT_LIST_WINDOW_MS` | 60000 (1 min) | List operations rate limit window |
+| `RATE_LIMIT_LIST_MAX` | 20 | Maximum list requests per window |
+
+**Production Example** (more permissive for paid users):
+
+```env
+# Production .env - more generous limits
+RATE_LIMIT_API_WINDOW_MS=900000
+RATE_LIMIT_API_MAX=200
+RATE_LIMIT_WRITE_WINDOW_MS=900000
+RATE_LIMIT_WRITE_MAX=50
+RATE_LIMIT_PEER_WINDOW_MS=60000
+RATE_LIMIT_PEER_MAX=120
+RATE_LIMIT_LIST_WINDOW_MS=60000
+RATE_LIMIT_LIST_MAX=30
+```
+
+**High-Traffic Example** (stricter for free tier):
+
+```env
+# Production .env - stricter limits
+RATE_LIMIT_API_WINDOW_MS=900000
+RATE_LIMIT_API_MAX=50
+RATE_LIMIT_WRITE_WINDOW_MS=900000
+RATE_LIMIT_WRITE_MAX=10
+RATE_LIMIT_PEER_WINDOW_MS=60000
+RATE_LIMIT_PEER_MAX=30
+RATE_LIMIT_LIST_WINDOW_MS=60000
+RATE_LIMIT_LIST_MAX=10
+```
+
+**Configuration**: `backend/config/config.ts` (Convict schema)  
+**Implementation**: `backend/middleware/rateLimiter.ts`
+
+**Benefits**:
+- ✅ Prevents DDoS attacks
+- ✅ Stops brute force attempts
+- ✅ Prevents API scraping
+- ✅ Reduces server load and costs
+- ✅ Different limits for different operation types
+
 ### Backend-Only Variables
 
 Variables without the `VITE_` prefix are **never exposed** to the frontend bundle:
 - `MONGODB_URI` - Database connection string (contains credentials in production)
 - `CORS_ORIGIN` - Allowed frontend URL
+- `RATE_LIMIT_*` - All rate limiting configuration (8 variables for security thresholds)
 
-**Why this matters**: Vite only includes `VITE_*` variables in the client bundle, preventing accidental exposure of sensitive data.
+**Why this matters**: Vite only includes `VITE_*` variables in the client bundle, preventing accidental exposure of sensitive data and security configuration.
 
 ### Production Checklist
 
@@ -369,6 +522,7 @@ Before deploying to production:
 - [ ] Set `CORS_ORIGIN` to your production frontend URL
 - [ ] Set `MONGODB_URI` with authentication credentials
 - [ ] Set `NODE_ENV=production`
+- [ ] Review and adjust rate limit values for your traffic patterns
 - [ ] Use HTTPS for both frontend and backend
 - [ ] Review all environment variables in `.env.example`
 - [ ] Never commit actual `.env` files to version control

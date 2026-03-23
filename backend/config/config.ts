@@ -62,6 +62,56 @@ const config = convict({
       env: "VITE_MAX_PLAYERS_PER_CARD",
     },
   },
+  rateLimit: {
+    apiWindowMs: {
+      doc: "Rate limit window for general API requests (milliseconds)",
+      format: "nat",
+      default: 900000, // 15 minutes
+      env: "RATE_LIMIT_API_WINDOW_MS",
+    },
+    apiMaxRequests: {
+      doc: "Maximum API requests per window",
+      format: "nat",
+      default: 100,
+      env: "RATE_LIMIT_API_MAX",
+    },
+    writeWindowMs: {
+      doc: "Rate limit window for write operations (milliseconds)",
+      format: "nat",
+      default: 900000, // 15 minutes
+      env: "RATE_LIMIT_WRITE_WINDOW_MS",
+    },
+    writeMaxRequests: {
+      doc: "Maximum write requests per window",
+      format: "nat",
+      default: 30,
+      env: "RATE_LIMIT_WRITE_MAX",
+    },
+    peerWindowMs: {
+      doc: "Rate limit window for peer operations (milliseconds)",
+      format: "nat",
+      default: 60000, // 1 minute
+      env: "RATE_LIMIT_PEER_WINDOW_MS",
+    },
+    peerMaxRequests: {
+      doc: "Maximum peer requests per window",
+      format: "nat",
+      default: 60,
+      env: "RATE_LIMIT_PEER_MAX",
+    },
+    listWindowMs: {
+      doc: "Rate limit window for list operations (milliseconds)",
+      format: "nat",
+      default: 60000, // 1 minute
+      env: "RATE_LIMIT_LIST_WINDOW_MS",
+    },
+    listMaxRequests: {
+      doc: "Maximum list requests per window",
+      format: "nat",
+      default: 20,
+      env: "RATE_LIMIT_LIST_MAX",
+    },
+  },
 });
 
 // Load environment-specific configuration

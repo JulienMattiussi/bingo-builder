@@ -1,10 +1,14 @@
 import express from "express";
 import Card from "../models/Card.js";
+import {
+  writeOperationsLimiter,
+  listOperationsLimiter,
+} from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
-// Get all cards
-router.get("/", async (_req, res) => {
+// Get all cards (with rate limiting to prevent scraping)
+router.get("/", listOperationsLimiter, async (_req, res) => {
   try {
     const cards = await Card.find().sort({ createdAt: -1 });
     res.json(cards);
@@ -26,8 +30,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create a new card
-router.post("/", async (req, res) => {
+// Create a new card (stricter rate limit for write operations)
+router.post("/", writeOperationsLimiter, async (req, res) => {
   const { title, createdBy, rows, columns, tiles } = req.body;
 
   // Validate required fields
@@ -59,8 +63,8 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Update a card
-router.put("/:id", async (req, res) => {
+// Update a card (stricter rate limit for write operations)
+router.put("/:id", writeOperationsLimiter, async (req, res) => {
   try {
     const card = await Card.findById(req.params.id);
     if (!card) {
@@ -107,8 +111,8 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// Publish a card
-router.post("/:id/publish", async (req, res) => {
+// Publish a card (stricter rate limit for write operations)
+router.post("/:id/publish", writeOperationsLimiter, async (req, res) => {
   try {
     const card = await Card.findById(req.params.id);
     if (!card) {
@@ -146,8 +150,8 @@ router.post("/:id/publish", async (req, res) => {
   }
 });
 
-// Unpublish a card
-router.post("/:id/unpublish", async (req, res) => {
+// Unpublish a card (stricter rate limit for write operations)
+router.post("/:id/unpublish", writeOperationsLimiter, async (req, res) => {
   try {
     const card = await Card.findById(req.params.id);
     if (!card) {
@@ -176,7 +180,7 @@ router.post("/:id/unpublish", async (req, res) => {
 });
 
 // Delete a card (optional - for unpublished cards only)
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", writeOperationsLimiter, async (req, res) => {
   try {
     const card = await Card.findById(req.params.id);
     if (!card) {
@@ -204,8 +208,8 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Delete all cards by creator
-router.post("/delete-by-creator", async (req, res) => {
+// Delete all cards by creator (stricter rate limit)
+router.post("/delete-by-creator", writeOperationsLimiter, async (req, res) => {
   try {
     const { createdBy } = req.body;
 
@@ -225,8 +229,8 @@ router.post("/delete-by-creator", async (req, res) => {
   }
 });
 
-// Update creator name for all cards
-router.post("/update-creator", async (req, res) => {
+// Update creator name for all cards (stricter rate limit)
+router.post("/update-creator", writeOperationsLimiter, async (req, res) => {
   try {
     const { oldName, newName } = req.body;
 

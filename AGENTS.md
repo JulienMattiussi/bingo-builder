@@ -678,6 +678,8 @@ Before submitting code, verify:
 - [ ] Test data isolation maintained (separate database)
 - [ ] Responsive design tested on mobile viewport
 - [ ] Peer communication properly initialized and cleaned up
+- [ ] Rate limiting considerations for new endpoints
+- [ ] CORS configuration updated if needed
 - [ ] No `console.log` or debug code left in production code
 - [ ] Import paths use correct extensions (`.js` for backend ES modules)
 

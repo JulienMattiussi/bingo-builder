@@ -1,5 +1,6 @@
 import express from "express";
 import config from "../config/config.js";
+import { peerOperationsLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
@@ -32,9 +33,9 @@ setInterval(() => {
   });
 }, 30000); // Check every 30 seconds
 
-// Register or update a peer
-router.post("/:cardId/register", (req, res) => {
-  const { cardId } = req.params;
+// Register or update a peer (rate limited to prevent flooding)
+router.post("/:cardId/register", peerOperationsLimiter, (req, res) => {
+  const cardId = String(req.params.cardId);
   const { peerId, playerName, checkedCount = 0 } = req.body;
 
   if (!peerId || !playerName) {
@@ -68,9 +69,9 @@ router.post("/:cardId/register", (req, res) => {
   res.json({ success: true, activePeerCount: cardPeers.size });
 });
 
-// Get list of active peers for a card
-router.get("/:cardId/peers", (req, res) => {
-  const { cardId } = req.params;
+// Get list of active peers for a card (rate limited)
+router.get("/:cardId/peers", peerOperationsLimiter, (req, res) => {
+  const cardId = String(req.params.cardId);
   const { excludePeerId } = req.query;
 
   const cardPeers = activePeers.get(cardId);
@@ -91,27 +92,33 @@ router.get("/:cardId/peers", (req, res) => {
   res.json({ peers });
 });
 
-// Unregister a peer (when leaving)
-router.delete("/:cardId/unregister/:peerId", (req, res) => {
-  const { cardId, peerId } = req.params;
+// Unregister a peer (when leaving) - rate limited
+router.delete(
+  "/:cardId/unregister/:peerId",
+  peerOperationsLimiter,
+  (req, res) => {
+    const cardId = String(req.params.cardId);
+    const peerId = String(req.params.peerId);
 
-  const cardPeers = activePeers.get(cardId);
-  if (cardPeers) {
-    cardPeers.delete(peerId);
-    console.log(`Unregistered peer ${peerId} from card ${cardId}`);
+    const cardPeers = activePeers.get(cardId);
+    if (cardPeers) {
+      cardPeers.delete(peerId);
+      console.log(`Unregistered peer ${peerId} from card ${cardId}`);
 
-    // Clean up empty card entry
-    if (cardPeers.size === 0) {
-      activePeers.delete(cardId);
+      // Clean up empty card entry
+      if (cardPeers.size === 0) {
+        activePeers.delete(cardId);
+      }
     }
-  }
 
-  res.json({ success: true });
-});
+    res.json({ success: true });
+  },
+);
 
-// Heartbeat endpoint to keep peer alive
-router.post("/:cardId/heartbeat/:peerId", (req, res) => {
-  const { cardId, peerId } = req.params;
+// Heartbeat endpoint to keep peer alive (rate limited)
+router.post("/:cardId/heartbeat/:peerId", peerOperationsLimiter, (req, res) => {
+  const cardId = String(req.params.cardId);
+  const peerId = String(req.params.peerId);
   const { checkedCount } = req.body;
 
   const cardPeers = activePeers.get(cardId);
