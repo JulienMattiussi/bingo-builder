@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Profile Page", () => {
-  // Set up player name before each test
+  // Set up player nickname before each test
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
-    // Set player name in localStorage
+    // Set player nickname in localStorage
     await page.evaluate(() => {
       localStorage.setItem("bingo-player-name", "TestUser");
     });
@@ -20,7 +20,7 @@ test.describe("Profile Page", () => {
     ).toBeVisible();
   });
 
-  test("should display player name section", async ({ page }) => {
+  test("should display player nickname section", async ({ page }) => {
     await page.goto("/profile");
 
     // Should have the nickname section heading
@@ -29,7 +29,7 @@ test.describe("Profile Page", () => {
     ).toBeVisible();
   });
 
-  test("should change player name", async ({ page }) => {
+  test("should change player nickname", async ({ page }) => {
     await page.goto("/profile");
 
     // Click the "Change Nickname" button to show the input

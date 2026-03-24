@@ -41,7 +41,7 @@ function PlayCard() {
     loadCard();
     loadCheckedTiles();
 
-    // Check if we need to ask for player name
+    // Check if we need to ask for player nickname
     const existingName = playerNameUtils.getPlayerName();
     if (existingName) {
       setPlayerName(existingName);

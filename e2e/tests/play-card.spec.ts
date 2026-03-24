@@ -5,8 +5,8 @@ test.describe("Play Card Flow", () => {
   async function createTestCard(page: Page) {
     await page.goto("/create");
 
-    // Set player name if prompted
-    const playerNameInput = page.getByPlaceholder(/your name/i);
+    // Set player nickname if prompted
+    const playerNameInput = page.getByPlaceholder(/your (name|nickname)/i);
     if (await playerNameInput.isVisible()) {
       await playerNameInput.fill("E2EPlayer");
       await page.getByRole("button", { name: /continue/i }).click();
@@ -27,7 +27,7 @@ test.describe("Play Card Flow", () => {
     await page.getByRole("button", { name: /save card/i }).click();
 
     // Name modal may appear again if creating first card
-    const nameModalInput = page.getByPlaceholder(/your name/i);
+    const nameModalInput = page.getByPlaceholder(/your (name|nickname)/i);
     if (await nameModalInput.isVisible({ timeout: 2000 })) {
       await nameModalInput.fill("E2EPlayer");
       await page.getByRole("button", { name: /continue/i }).click();

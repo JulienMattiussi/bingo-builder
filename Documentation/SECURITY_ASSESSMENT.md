@@ -38,12 +38,12 @@ The application has good foundational security practices but **lacks critical au
 **Current State**:
 - No user accounts or login system
 - Anyone can create/modify cards
-- Player names stored as plain strings (not tied to users)
+- Player nicknames stored as plain strings (not tied to users)
 - `createdBy` field is just a text string, not verified
 
 **Risks**:
 - ❌ **Data Integrity**: Anyone can delete anyone else's cards
-- ❌ **Impersonation**: Users can claim any player name
+- ❌ **Impersonation**: Users can claim any player nickname
 - ❌ **No Accountability**: No audit trail of who did what
 - ❌ **Privacy**: No way to keep cards private to specific users
 
@@ -423,7 +423,7 @@ app.use(morgan('combined'));
 
 **What the app stores**:
 - ✅ Bingo card content (public game data)
-- ✅ Player names (plain text, user-provided)
+- ✅ Player nicknames (plain text, user-provided)
 - ✅ Creator names (plain text, user-provided)
 - ✅ Card metadata (timestamps, published status)
 - ✅ Active player list (peer connections, temporary)
@@ -440,12 +440,12 @@ app.use(morgan('combined'));
 
 **Issues**:
 - Anyone can see all published cards (by design, but no opt-out)
-- Player names are public
+- Player nicknames are public
 - No data deletion workflow for users
 - No privacy policy or terms of service
 
 **GDPR Considerations**:
-- ⚠️ Player names could be considered PII
+- ⚠️ Player nicknames could be considered PII
 - ⚠️ No consent mechanism
 - ⚠️ No "right to be forgotten" implementation
 - ⚠️ No data export functionality
@@ -527,7 +527,7 @@ RATE_LIMIT_WRITE_MAX=50
 | Risk | Level | Impact |
 |------|-------|--------|
 | Data Loss | 🔴 HIGH | Anyone can delete their cards |
-| Impersonation | 🔴 HIGH | Anyone can use any player name |
+| Impersonation | 🔴 HIGH | Anyone can use any player nickname |
 | Privacy | 🟡 MEDIUM | All published cards are public, no control |
 | Content Moderation | 🟡 MEDIUM | No way to report abusive content |
 | Account Security | N/A | No accounts = no account security issues |

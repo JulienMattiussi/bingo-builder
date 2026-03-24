@@ -16,10 +16,10 @@ export const PeerRegistrationSchema = z
     }),
     playerName: z
       .string()
-      .min(1, "Player name is required")
+      .min(1, "Player nickname is required")
       .max(config.get("limits.playerNameMaxLength"))
       .openapi({
-        description: "Player display name",
+        description: "Player nickname",
         example: "Alice",
       }),
     checkedCount: z.number().int().min(0).default(0).openapi({
@@ -38,7 +38,7 @@ export const PeerInfoSchema = z
       description: "Unique peer identifier",
     }),
     playerName: z.string().openapi({
-      description: "Player display name",
+      description: "Player nickname",
     }),
     checkedCount: z.number().int().min(0).openapi({
       description: "Number of tiles checked",

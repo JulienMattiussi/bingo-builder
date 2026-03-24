@@ -50,7 +50,7 @@ const config = convict({
       env: "VITE_TILE_MAX_LENGTH",
     },
     playerNameMaxLength: {
-      doc: "Maximum length for player names",
+      doc: "Maximum length for player nicknames",
       format: "nat",
       default: 10,
       env: "VITE_PLAYER_NAME_MAX_LENGTH",

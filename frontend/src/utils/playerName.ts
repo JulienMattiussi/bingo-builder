@@ -4,7 +4,7 @@ const PLAYER_NAME_KEY = "bingo-player-name";
 const MAX_PLAYER_NAME_LENGTH = config.playerNameMaxLength;
 
 export const playerNameUtils = {
-  // Validate player name format
+  // Validate player nickname format
   isValidName(name: string): boolean {
     // Only letters, digits, - and _
     // Maximum length from env variable
@@ -12,12 +12,12 @@ export const playerNameUtils = {
     return regex.test(name);
   },
 
-  // Get player name from localStorage
+  // Get player nickname from localStorage
   getPlayerName(): string {
     return localStorage.getItem(PLAYER_NAME_KEY) || "";
   },
 
-  // Save player name to localStorage
+  // Save player nickname to localStorage
   savePlayerName(name: string): boolean {
     if (name && this.isValidName(name)) {
       localStorage.setItem(PLAYER_NAME_KEY, name.trim());
@@ -26,12 +26,12 @@ export const playerNameUtils = {
     return false;
   },
 
-  // Check if player name exists
+  // Check if player nickname exists
   hasPlayerName(): boolean {
     return !!localStorage.getItem(PLAYER_NAME_KEY);
   },
 
-  // Clear player name
+  // Clear player nickname
   clearPlayerName(): void {
     localStorage.removeItem(PLAYER_NAME_KEY);
   },

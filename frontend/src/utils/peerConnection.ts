@@ -41,7 +41,7 @@ class PeerConnectionManager {
     this.cardId = cardId;
     this.playerName = playerName;
 
-    // Create a unique peer ID based on card ID, player name, and random suffix
+    // Create a unique peer ID based on card ID, player nickname, and random suffix
     const randomId = Math.random().toString(36).substring(2, 8);
     const peerId = `bingo-${cardId}-${playerName}-${randomId}`;
 

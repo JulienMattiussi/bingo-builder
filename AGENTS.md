@@ -579,7 +579,7 @@ app.use(
 From OpenAPI spec:
 - **Card title**: 1-25 characters
 - **Tile value**: max 40 characters
-- **Player name**: 1-10 characters
+- **Player nickname**: 1-10 characters
 - **Grid rows**: 2-5
 - **Grid columns**: 2-6
 - **Tiles array**: 4-30 items (must match rows × columns)
@@ -814,7 +814,7 @@ peerConnection.disconnect();
 const peerConnectionRef = useRef<ReturnType<typeof createPeerConnection> | null>(null);
 
 useEffect(() => {
-  // Initialize on mount when card and player name available
+  // Initialize on mount when card and player nickname available
   if (card && playerName && !peerConnectionRef.current) {
     initializePeerConnection();
   }
@@ -830,14 +830,14 @@ useEffect(() => {
 
 ### Rules for Peer Communication
 
-1. ✅ **DO**: Initialize peer connection only after player name is set
+1. ✅ **DO**: Initialize peer connection only after player nickname is set
 2. ✅ **DO**: Clean up peer connection on component unmount
 3. ✅ **DO**: Broadcast state changes (tile checks) to other players
 4. ✅ **DO**: Handle connection errors gracefully (continue working offline)
 5. ✅ **DO**: Use the singleton pattern (one connection per card/player)
 6. ❌ **DON'T**: Create multiple peer connections for the same card
 7. ❌ **DON'T**: Forget to unregister peer on page leave
-8. ❌ **DON'T**: Expose peer IDs or player names in URLs (security)
+8. ❌ **DON'T**: Expose peer IDs or player nicknames in URLs (security)
 
 ### Adding New Peer Features
 

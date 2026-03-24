@@ -9,12 +9,12 @@ describe("PlayerName Utility", () => {
   });
 
   describe("getPlayerName", () => {
-    it("should return stored player name from localStorage", () => {
+    it("should return stored player nickname from localStorage", () => {
       localStorage.setItem(PLAYER_NAME_KEY, "TestPlayer");
       expect(playerNameUtils.getPlayerName()).toBe("TestPlayer");
     });
 
-    it("should return empty string when no player name is stored", () => {
+    it("should return empty string when no player nickname is stored", () => {
       const result = playerNameUtils.getPlayerName();
       expect(result === null || result === "").toBe(true);
     });
@@ -27,13 +27,13 @@ describe("PlayerName Utility", () => {
   });
 
   describe("savePlayerName", () => {
-    it("should store valid player name in localStorage", () => {
+    it("should store valid player nickname in localStorage", () => {
       const result = playerNameUtils.savePlayerName("NewPlayer");
       expect(result).toBe(true);
       expect(localStorage.getItem(PLAYER_NAME_KEY)).toBe("NewPlayer");
     });
 
-    it("should overwrite existing player name", () => {
+    it("should overwrite existing player nickname", () => {
       playerNameUtils.savePlayerName("FirstPlay");
       playerNameUtils.savePlayerName("SecondPlay");
       expect(localStorage.getItem(PLAYER_NAME_KEY)).toBe("SecondPlay");
@@ -54,29 +54,29 @@ describe("PlayerName Utility", () => {
   });
 
   describe("clearPlayerName", () => {
-    it("should remove player name from localStorage", () => {
+    it("should remove player nickname from localStorage", () => {
       playerNameUtils.savePlayerName("TestClear");
       playerNameUtils.clearPlayerName();
       expect(localStorage.getItem(PLAYER_NAME_KEY)).toBeNull();
     });
 
-    it("should work when no player name is stored", () => {
+    it("should work when no player nickname is stored", () => {
       playerNameUtils.clearPlayerName();
       expect(localStorage.getItem(PLAYER_NAME_KEY)).toBeNull();
     });
   });
 
   describe("hasPlayerName", () => {
-    it("should return true when player name exists", () => {
+    it("should return true when player nickname exists", () => {
       playerNameUtils.savePlayerName("TestPlayer");
       expect(playerNameUtils.hasPlayerName()).toBe(true);
     });
 
-    it("should return false when no player name exists", () => {
+    it("should return false when no player nickname exists", () => {
       expect(playerNameUtils.hasPlayerName()).toBe(false);
     });
 
-    it("should return false when player name is empty string", () => {
+    it("should return false when player nickname is empty string", () => {
       localStorage.setItem(PLAYER_NAME_KEY, "");
       expect(playerNameUtils.hasPlayerName()).toBe(false);
     });

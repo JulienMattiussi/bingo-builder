@@ -181,7 +181,7 @@ components:
           description: Unique peer identifier
         playerName:
           type: string
-          description: Player display name
+          description: Player nickname
         checkedCount:
           type: integer
           minimum: 0
@@ -202,7 +202,7 @@ components:
           type: string
           minLength: 1
           maxLength: 10
-          description: Player display name
+          description: Player nickname
           example: Alice
         checkedCount:
           type: integer
@@ -309,7 +309,8 @@ paths:
   /api/cards:
     get:
       summary: List all cards
-      description: Retrieve all bingo cards sorted by creation date (newest first).
+      description:
+        Retrieve all bingo cards sorted by creation date (newest first).
         Rate limited to prevent scraping.
       tags:
         - cards
@@ -843,7 +844,8 @@ paths:
   /api/peers/{cardId}/register:
     post:
       summary: Register or update a peer
-      description: Register a player as an active peer for a card or update their
+      description:
+        Register a player as an active peer for a card or update their
         information
       tags:
         - peers

@@ -26,7 +26,7 @@ function CreateCard() {
   const [selectedTile, setSelectedTile] = useState<Tile | null>(null);
 
   useEffect(() => {
-    // Load existing player name
+    // Load existing player nickname
     const existingName = playerNameUtils.getPlayerName();
     if (existingName) {
       setPlayerName(existingName);
@@ -58,7 +58,7 @@ function CreateCard() {
       return;
     }
 
-    // Check if we need to ask for player name
+    // Check if we need to ask for player nickname
     if (!playerNameUtils.hasPlayerName()) {
       setShowNameModal(true);
       return;

@@ -1,6 +1,6 @@
 /**
  * CardNameModal Component
- * Modal for collecting player name before creating/editing a card
+ * Modal for collecting player nickname before creating/editing a card
  */
 import { KeyboardEvent } from "react";
 import config from "../config";
@@ -20,7 +20,7 @@ function CardNameModal({
   onPlayerNameChange,
   onSubmit,
   onCancel,
-  message = "Please enter your name:",
+  message = "Please enter your nickname:",
 }: CardNameModalProps) {
   if (!show) return null;
 
@@ -42,7 +42,7 @@ function CardNameModal({
           type="text"
           value={playerName}
           onChange={(e) => onPlayerNameChange(e.target.value)}
-          placeholder="Your name..."
+          placeholder="Your nickname..."
           maxLength={config.playerNameMaxLength}
           className="modal-input"
           autoFocus

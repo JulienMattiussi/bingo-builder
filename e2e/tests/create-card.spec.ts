@@ -14,8 +14,8 @@ test.describe("Create Card Flow", () => {
   test("should create a new bingo card", async ({ page }) => {
     await page.goto("/create");
 
-    // Set player name if prompted initially
-    const initialNameInput = page.getByPlaceholder(/your name/i);
+    // Set player nickname if prompted initially
+    const initialNameInput = page.getByPlaceholder(/your (name|nickname)/i);
     if (await initialNameInput.isVisible()) {
       await initialNameInput.fill("TestPlayer");
       await page.getByRole("button", { name: /continue/i }).click();
@@ -51,8 +51,8 @@ test.describe("Create Card Flow", () => {
   test("should adjust grid size", async ({ page }) => {
     await page.goto("/create");
 
-    // Set player name if needed
-    const playerNameInput = page.getByPlaceholder(/your name/i);
+    // Set player nickname if needed
+    const playerNameInput = page.getByPlaceholder(/your (name|nickname)/i);
     if (await playerNameInput.isVisible()) {
       await playerNameInput.fill("TestPlayer");
       await page.getByRole("button", { name: /continue/i }).click();
@@ -80,8 +80,8 @@ test.describe("Create Card Flow", () => {
   test("should show progress status", async ({ page }) => {
     await page.goto("/create");
 
-    // Set player name if needed
-    const playerNameInput = page.getByPlaceholder(/your name/i);
+    // Set player nickname if needed
+    const playerNameInput = page.getByPlaceholder(/your (name|nickname)/i);
     if (await playerNameInput.isVisible()) {
       await playerNameInput.fill("TestPlayer");
       await page.getByRole("button", { name: /continue/i }).click();

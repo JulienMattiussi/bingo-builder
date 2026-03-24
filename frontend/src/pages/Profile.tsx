@@ -61,12 +61,12 @@ function Profile() {
     setSuccess(null);
 
     if (!newName.trim()) {
-      setError("Please enter a name");
+      setError("Please enter a nickname");
       return;
     }
 
     if (!playerNameUtils.isValidName(newName)) {
-      setError("Name must be 1-10 characters (letters, digits, -, _ only)");
+      setError("Nickname must be 1-10 characters (letters, digits, -, _ only)");
       return;
     }
 
@@ -202,7 +202,7 @@ function Profile() {
                 </button>
               </div>
               <p style={{ color: "#7f8c8d", fontSize: "0.9rem" }}>
-                This name appears on all bingo cards you create.
+                This nickname appears on all bingo cards you create.
               </p>
             </div>
           ) : (
@@ -220,7 +220,7 @@ function Profile() {
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Enter new name..."
+                placeholder="Enter new nickname..."
                 maxLength={config.playerNameMaxLength}
                 className="title-input"
                 autoFocus

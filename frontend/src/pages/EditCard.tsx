@@ -29,7 +29,7 @@ function EditCard() {
 
   useEffect(() => {
     loadCard();
-    // Load existing player name
+    // Load existing player nickname
     const existingName = playerNameUtils.getPlayerName();
     if (existingName) {
       setPlayerName(existingName);
@@ -96,7 +96,7 @@ function EditCard() {
       return;
     }
 
-    // Check if we need to ask for player name
+    // Check if we need to ask for player nickname
     if (!hasAskedName && !playerNameUtils.hasPlayerName()) {
       setShowNameModal(true);
       return;

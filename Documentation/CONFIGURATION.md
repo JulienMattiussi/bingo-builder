@@ -67,7 +67,7 @@ const maxPlayers = config.get("limits.maxPlayersPerCard"); // number
 | `CORS_ORIGIN` | string | http://localhost:3000 | Allowed CORS origin (frontend URL) | ❌ Backend-only |
 | `VITE_CARD_TITLE_MAX_LENGTH` | number | 25 | Maximum card title length | ✅ |
 | `VITE_TILE_MAX_LENGTH` | number | 40 | Maximum tile content length | ✅ |
-| `VITE_PLAYER_NAME_MAX_LENGTH` | number | 10 | Maximum player name length | ✅ |
+| `VITE_PLAYER_NAME_MAX_LENGTH` | number | 10 | Maximum player nickname length | ✅ |
 | `VITE_MAX_PLAYERS_PER_CARD` | number | 6 | Maximum players per card | ✅ |
 | `VITE_MAX_PUBLISHED_CARDS` | number | 50 | Maximum published cards in database | ✅ |
 | `VITE_MAX_UNPUBLISHED_CARDS` | number | 50 | Maximum unpublished cards in database | ✅ |
@@ -117,7 +117,7 @@ All frontend environment variables use the `VITE_` prefix. These same variables 
 | `VITE_PORT` | number | 3000 | Frontend dev server port |
 | `VITE_CARD_TITLE_MAX_LENGTH` | number | 25 | Maximum card title length |
 | `VITE_TILE_MAX_LENGTH` | number | 40 | Maximum tile content length |
-| `VITE_PLAYER_NAME_MAX_LENGTH` | number | 10 | Maximum player name length |
+| `VITE_PLAYER_NAME_MAX_LENGTH` | number | 10 | Maximum player nickname length |
 | `VITE_MAX_PLAYERS_PER_CARD` | number | 6 | Maximum players per card |
 | `VITE_MAX_PUBLISHED_CARDS` | number | 50 | Maximum published cards in database |
 | `VITE_MAX_UNPUBLISHED_CARDS` | number | 50 | Maximum unpublished cards in database |
@@ -436,7 +436,7 @@ app.use(
    ```
    **Response**: `400 Bad Request` with validation details
 
-2. **Peer registration** - Enforces player name length:
+2. **Peer registration** - Enforces player nickname length:
    ```json
    {
      "peerId": "abc123",
@@ -468,7 +468,7 @@ app.use(
 **Validation Rules** (from OpenAPI spec):
 - **Card title**: 1-25 characters
 - **Tile value**: max 40 characters
-- **Player name**: 1-10 characters
+- **Player nickname**: 1-10 characters
 - **Grid rows**: 2-5
 - **Grid columns**: 2-6
 - **Tiles array**: 4-30 items (must match rows × columns)
