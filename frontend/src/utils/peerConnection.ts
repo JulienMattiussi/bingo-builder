@@ -41,58 +41,79 @@ class PeerConnectionManager {
     this.cardId = cardId;
     this.playerName = playerName;
 
-    // Create a unique peer ID based on card ID, player nickname, and random suffix
-    const randomId = Math.random().toString(36).substring(2, 8);
-    const peerId = `bingo-${cardId}-${playerName}-${randomId}`;
+    // Create a unique peer ID (UUID-based for uniqueness)
+    const peerId = crypto.randomUUID();
+    this.myPeerId = peerId;
 
-    return new Promise((resolve, reject) => {
-      this.peer = new Peer(peerId, {
-        config: {
-          iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:global.stun.twilio.com:3478" },
-          ],
-        },
+    // Initialize our own progress
+    this.playerProgress.set(peerId, {
+      name: playerName,
+      checkedCount: initialCheckedCount,
+    });
+
+    // Register with backend (HTTP-based peer system)
+    try {
+      await api.registerPeer(cardId, peerId, playerName, initialCheckedCount);
+      console.log("[Peer] Registered with backend:", peerId);
+
+      // Start polling for peer updates
+      this.startPolling();
+
+      // Optionally try to establish PeerJS connections for real-time notifications
+      this.initializePeerJS(peerId).catch((err) => {
+        console.warn(
+          "[PeerJS] Could not establish P2P connections (continuing with HTTP polling):",
+          err,
+        );
       });
+    } catch (error) {
+      console.error("[Peer] Failed to register with backend:", error);
+      throw error;
+    }
 
-      this.peer.on("open", async (id) => {
-        console.log("Peer connection opened with ID:", id);
-        this.myPeerId = id;
+    return peerId;
+  }
 
-        // Initialize our own progress
-        this.playerProgress.set(id, {
-          name: playerName,
-          checkedCount: initialCheckedCount,
+  // Optional PeerJS initialization for real-time notifications
+  private async initializePeerJS(peerId: string) {
+    return new Promise((resolve, reject) => {
+      try {
+        this.peer = new Peer(peerId, {
+          config: {
+            iceServers: [
+              { urls: "stun:stun.l.google.com:19302" },
+              { urls: "stun:global.stun.twilio.com:3478" },
+            ],
+          },
         });
 
-        this.notifyPlayerListUpdate();
+        // Timeout after 10 seconds if PeerJS fails to connect
+        const timeout = setTimeout(() => {
+          reject(new Error("PeerJS connection timeout"));
+        }, 10000);
 
-        // Register with backend
-        try {
-          await api.registerPeer(cardId, id, playerName, initialCheckedCount);
-          console.log("Registered with backend signaling service");
+        this.peer.on("open", async (id) => {
+          clearTimeout(timeout);
+          console.log("[PeerJS] Connection opened with ID:", id);
 
-          // Start heartbeat
-          this.startHeartbeat();
-
-          // Discover and connect to peers
+          // Discover and connect to peers for P2P notifications
           await this.discoverPeers();
-        } catch (error) {
-          console.error("Failed to register with backend:", error);
-        }
+          resolve(id);
+        });
 
-        resolve(id);
-      });
+        this.peer.on("error", (error) => {
+          clearTimeout(timeout);
+          console.warn("[PeerJS] Error:", error);
+          reject(error);
+        });
 
-      this.peer.on("error", (error) => {
-        console.error("Peer error:", error);
+        // Handle incoming connections
+        this.peer.on("connection", (conn) => {
+          this.handleIncomingConnection(conn);
+        });
+      } catch (error) {
         reject(error);
-      });
-
-      // Handle incoming connections
-      this.peer.on("connection", (conn) => {
-        this.handleIncomingConnection(conn);
-      });
+      }
     });
   }
 
@@ -126,30 +147,87 @@ class PeerConnectionManager {
     }
   }
 
-  // Start heartbeat to keep peer registered
-  startHeartbeat() {
+  // Start polling for peer updates (HTTP-based)
+  startPolling() {
+    // Initial fetch
+    this.fetchPeerListFromBackend();
+
+    // Poll every 3 seconds for player list updates
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
     }
 
     this.heartbeatInterval = setInterval(async () => {
       try {
+        // Send heartbeat to stay registered
         const checkedCount =
           this.playerProgress.get(this.myPeerId!)?.checkedCount || 0;
         await api.peerHeartbeat(this.cardId!, this.myPeerId!, checkedCount);
 
-        // Also re-discover peers periodically
-        this.discoverPeers();
+        // Fetch updated peer list from backend
+        await this.fetchPeerListFromBackend();
+
+        // Also try to discover peers for P2P connections (if PeerJS is working)
+        if (this.peer && this.peer.open) {
+          this.discoverPeers();
+        }
       } catch (error) {
-        console.error("Heartbeat failed:", error);
+        console.error("[Peer] Polling/heartbeat failed:", error);
       }
-    }, 30000); // Every 30 seconds
+    }, 3000); // Every 3 seconds
   }
 
-  // Connect to a specific peer
+  // Fetch peer list from backend HTTP API
+  async fetchPeerListFromBackend() {
+    try {
+      const { peers } = await api.getActivePeers(this.cardId!, this.myPeerId);
+      console.log(`[Peer] Fetched ${peers.length} peers from backend`);
+
+      // Keep track of our own checked count before clearing
+      const myCheckedCount =
+        this.playerProgress.get(this.myPeerId!)?.checkedCount || 0;
+
+      // Clear progress map and rebuild from backend data
+      this.playerProgress.clear();
+
+      // Add our own player first
+      if (this.myPeerId && this.playerName) {
+        this.playerProgress.set(this.myPeerId, {
+          name: this.playerName,
+          checkedCount: myCheckedCount,
+        });
+      }
+
+      // Add all other peers from backend
+      peers.forEach(
+        (peer: {
+          peerId: string;
+          playerName: string;
+          checkedCount: number;
+        }) => {
+          this.playerProgress.set(peer.peerId, {
+            name: peer.playerName,
+            checkedCount: peer.checkedCount,
+          });
+        },
+      );
+
+      // Notify UI of player list update
+      this.notifyPlayerListUpdate();
+    } catch (error) {
+      console.error("[Peer] Failed to fetch peer list from backend:", error);
+    }
+  }
+
+  // Connect to a specific peer (PeerJS-based, optional)
   connectToPeer(peerId: string) {
+    if (!this.peer || !this.peer.open) {
+      // PeerJS not available, skip P2P connection
+      return;
+    }
+
     if (this.connections.size >= MAX_PEERS) {
-      console.log("Max peer connections reached");
+      console.log("[PeerJS] Max peer connections reached");
       return;
     }
 
@@ -158,10 +236,10 @@ class PeerConnectionManager {
     }
 
     try {
-      const conn = this.peer!.connect(peerId);
+      const conn = this.peer.connect(peerId);
       this.setupConnection(conn);
     } catch (error) {
-      console.error("Error connecting to peer:", error);
+      console.error("[PeerJS] Error connecting to peer:", error);
     }
   }
 
@@ -285,8 +363,13 @@ class PeerConnectionManager {
     }
   }
 
-  // Send a message to a specific peer or all peers
+  // Send a message to a specific peer or all peers (PeerJS-based)
   sendMessage(peerId: string | null, message: PeerMessage) {
+    if (!this.peer || !this.peer.open || this.connections.size === 0) {
+      // No PeerJS connections available, skip sending
+      return;
+    }
+
     if (peerId) {
       const conn = this.connections.get(peerId);
       if (conn && conn.open) {
