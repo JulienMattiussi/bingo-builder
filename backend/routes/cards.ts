@@ -235,7 +235,7 @@ router.post("/:id/unpublish", writeOperationsLimiter, async (req, res) => {
     }
 
     card.isPublished = false;
-    card.publishedAt = null;
+    card.publishedAt = undefined;
     const unpublishedCard = await card.save();
     res.json(unpublishedCard);
   } catch (error) {

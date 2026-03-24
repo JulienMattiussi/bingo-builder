@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for components/BingoCardPreview.tsx</title>
+    <title>Code coverage report for middleware/rateLimiter.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">components</a> BingoCardPreview.tsx</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">middleware</a> rateLimiter.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>6/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">93.33% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>14/15</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>2/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>6/8</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -111,7 +111,20 @@
 <a name='L46'></a><a href='#L46'>46</a>
 <a name='L47'></a><a href='#L47'>47</a>
 <a name='L48'></a><a href='#L48'>48</a>
-<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -120,23 +133,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">46x</span>
-<span class="cline-any cline-yes">46x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -145,6 +147,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -152,6 +160,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -159,54 +173,64 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Tile } from "../types/models";
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import rateLimit from "express-rate-limit";
+import config from "../config/config.js";
 &nbsp;
-interface BingoCardPreviewProps {
-  tiles: Tile[];
-  rows: number;
-  columns: number;
-  checkedTiles?: number[];
-}
+// General API rate limiter
+// Configurable via RATE_LIMIT_API_WINDOW_MS and RATE_LIMIT_API_MAX
+export const apiLimiter = rateLimit({
+  windowMs: config.get("rateLimit.apiWindowMs"),
+  max: config.get("rateLimit.apiMaxRequests"),
+  message: {
+    message: "Too many requests from this IP, please try again later.",
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Skip rate limiting in test environment
+<span class="fstat-no" title="function not covered" >  skip: () =&gt; <span class="cstat-no" title="statement not covered" >c</span>onfig.get("env") === "test",</span>
+});
 &nbsp;
-function BingoCardPreview({
-  tiles,
-  rows,
-  columns,
-  checkedTiles = [],
-}: BingoCardPreviewProps) {
-  return (
-    &lt;div
-      className="card-preview"
-      style={{
-        gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gridTemplateRows: `repeat(${rows}, 1fr)`,
-      }}
-    &gt;
-      {tiles.map((tile, index) =&gt; {
-        const isChecked = checkedTiles.includes(tile.position);
-        return (
-          &lt;div
-            key={index}
-            className={`preview-tile ${!tile.value || !tile.value.trim() ? "empty" : ""} ${isChecked ? "checked" : ""}`}
-            title={tile.value || "Empty"}
-          &gt;
-            {tile.value &amp;&amp; tile.value.trim() ? (
-              &lt;span&gt;
-                {tile.value.length &gt; 12
-                  ? <span class="branch-0 cbranch-no" title="branch not covered" >tile.value.substring(0, 12) + "..."</span>
-                  : tile.value}
-              &lt;/span&gt;
-            ) : (
-              &lt;span className="empty-marker"&gt;●&lt;/span&gt;
-            )}
-          &lt;/div&gt;
-        );
-      })}
-    &lt;/div&gt;
-  );
-}
+// Stricter rate limiter for write operations (POST, PUT, DELETE)
+// Configurable via RATE_LIMIT_WRITE_WINDOW_MS and RATE_LIMIT_WRITE_MAX
+export const writeOperationsLimiter = rateLimit({
+  windowMs: config.get("rateLimit.writeWindowMs"),
+  max: config.get("rateLimit.writeMaxRequests"),
+  message: {
+    message:
+      "Too many write operations from this IP, please try again after 15 minutes.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () =&gt; config.get("env") === "test",
+});
 &nbsp;
-export default BingoCardPreview;
+// Very strict rate limiter for peer registration/updates
+// Configurable via RATE_LIMIT_PEER_WINDOW_MS and RATE_LIMIT_PEER_MAX
+export const peerOperationsLimiter = rateLimit({
+  windowMs: config.get("rateLimit.peerWindowMs"),
+  max: config.get("rateLimit.peerMaxRequests"),
+  message: {
+    message: "Too many peer operations, please slow down.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+<span class="fstat-no" title="function not covered" >  skip: () =&gt; <span class="cstat-no" title="statement not covered" >c</span>onfig.get("env") === "test",</span>
+});
+&nbsp;
+// Aggressive rate limiter for card listing (prevent scraping)
+// Configurable via RATE_LIMIT_LIST_WINDOW_MS and RATE_LIMIT_LIST_MAX
+export const listOperationsLimiter = rateLimit({
+  windowMs: config.get("rateLimit.listWindowMs"),
+  max: config.get("rateLimit.listMaxRequests"),
+  message: {
+    message: "Too many list requests, please slow down.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () =&gt; config.get("env") === "test",
+});
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -214,7 +238,7 @@ export default BingoCardPreview;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-22T12:42:25.439Z
+                at 2026-03-24T10:36:09.711Z
             </div>
         <script src="../prettify.js"></script>
         <script>

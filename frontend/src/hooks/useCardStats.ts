@@ -12,7 +12,7 @@ interface CardStats {
 
 export function useCardStats() {
   const [stats, setStats] = useState<CardStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadStats = async () => {
@@ -24,13 +24,23 @@ export function useCardStats() {
     } catch (err) {
       setError((err as Error).message);
       console.error("Failed to load card stats:", err);
+      // On error, set permissive defaults (allow all actions)
+      setStats({
+        published: 0,
+        unpublished: 0,
+        maxPublished: 50,
+        maxUnpublished: 50,
+        canCreate: true,
+        canPublish: true,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadStats();
+    // Load stats but don't block if it fails
+    loadStats().catch(console.error);
   }, []);
 
   return { stats, loading, error, reload: loadStats };

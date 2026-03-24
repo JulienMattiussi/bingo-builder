@@ -249,6 +249,7 @@ Keep `README.md` focused on:
 5. ❌ **DON'T**: Use `any` type (use `unknown` if type is truly unknown)
 6. ❌ **DON'T**: Skip type annotations on parameters
 7. ❌ **DON'T**: Disable TypeScript errors with `@ts-ignore` (fix the issue)
+8. ❌ **DON'T**: Use `any` type in tests - create proper interfaces instead
 
 ### Type Organization
 
@@ -256,6 +257,7 @@ Keep `README.md` focused on:
 - Models use Mongoose TypeScript integration
 - Request/response interfaces in route files
 - Shared types in separate files when reused
+- Export document interfaces for models with virtuals
 
 **Frontend**:
 - Component props: Define `interface ComponentProps` above component
@@ -265,7 +267,33 @@ Keep `README.md` focused on:
 
 **Example**:
 ```typescript
-// Good
+// Good - Mongoose model with proper typing
+import mongoose, { Document } from "mongoose";
+
+interface ICard {
+  title: string;
+  rows: number;
+  columns: number;
+}
+
+// Export interface for documents with virtuals
+export interface ICardDocument extends ICard, Document {
+  totalTiles: number; // virtual property
+}
+
+const Card = mongoose.model<ICardDocument>("Card", cardSchema);
+
+// Good - Test using proper interface
+import Card, { ICardDocument } from "../../models/Card.js";
+
+const savedCard: ICardDocument = await card.save();
+expect(savedCard.totalTiles).toBe(12); // ✅ Type-safe
+
+// Bad
+const savedCard = await card.save();
+expect((savedCard as any).totalTiles).toBe(12); // ❌ Uses 'any'
+
+// Good - Regular typed function
 interface Card {
   _id: string;
   title: string;
@@ -462,7 +490,52 @@ describe("Feature Name", () => {
 5. ❌ **DON'T**: Test implementation details
 6. ❌ **DON'T**: Write tests that depend on each other
 7. ❌ **DON'T**: Skip cleanup in `afterEach`
+### E2E Test Configuration
 
+**Framework**: Playwright
+
+**CI Compatibility**: Tests must exit cleanly without hanging the terminal.
+
+**Reporter Configuration** (`e2e/playwright.config.ts`):
+```typescript
+reporter: process.env.CI ? "list" : [["list"], ["html", { open: "never" }]]
+```
+
+**Why this matters**:
+- Default `"html"` reporter auto-opens browser on failure, blocking the terminal
+- Blocked terminals break CI/CD pipelines
+- `open: "never"` generates HTML reports without auto-opening
+- HTML reports remain accessible via `npm run test:report`
+
+**Configuration Pattern**:
+```typescript
+export default defineConfig({
+  reporter: process.env.CI 
+    ? "list"  // CI: simple list output, exits cleanly
+    : [["list"], ["html", { open: "never" }]],  // Local: terminal + HTML (no auto-open)
+  
+  // Other CI-specific settings
+  forbidOnly: !!process.env.CI,    // Prevent .only in CI
+  retries: process.env.CI ? 2 : 0, // Retry flaky tests in CI
+  workers: process.env.CI ? 1 : undefined, // Serial execution in CI
+});
+```
+
+**Rules**:
+1. ✅ **DO**: Configure reporters to exit cleanly on failure
+2. ✅ **DO**: Use `{ open: "never" }` for HTML reporter in local development
+3. ✅ **DO**: Use different configurations for CI vs local (via `process.env.CI`)
+4. ✅ **DO**: Test E2E pipeline exits properly before committing config changes
+5. ❌ **DON'T**: Use reporters that require user interaction (auto-open browser, UI mode)
+6. ❌ **DON'T**: Leave `--headed` or `--ui` flags in CI test commands
+7. ❌ **DON'T**: Use `--debug` mode in automated pipelines
+
+**Viewing Reports**:
+```bash
+make test-e2e         # Run tests (exits cleanly)
+make test-e2e-ui      # Interactive UI mode (local only)
+npm run test:report   # View HTML report after test run
+```
 ---
 
 ## � API Validation with OpenAPI

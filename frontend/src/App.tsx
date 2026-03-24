@@ -10,6 +10,9 @@ import "./App.css";
 function App() {
   const { stats } = useCardStats();
 
+  // Allow create link to work even if stats haven't loaded or failed
+  const isCreateDisabled = stats?.canCreate === false;
+
   return (
     <Router>
       <div className="app">
@@ -21,9 +24,9 @@ function App() {
             <Link to="/">Home</Link>
             <Link
               to="/create"
-              className={stats && !stats.canCreate ? "disabled-link" : ""}
+              className={isCreateDisabled ? "disabled-link" : ""}
               onClick={(e) => {
-                if (stats && !stats.canCreate) {
+                if (isCreateDisabled) {
                   e.preventDefault();
                   alert(
                     `Maximum unpublished cards limit reached (${stats.maxUnpublished}/${stats.maxUnpublished}). Please publish or delete existing cards.`,
@@ -31,7 +34,7 @@ function App() {
                 }
               }}
               title={
-                stats && !stats.canCreate
+                isCreateDisabled
                   ? `Limit reached: ${stats.unpublished}/${stats.maxUnpublished} unpublished cards`
                   : undefined
               }

@@ -6,6 +6,7 @@
         "npx playwright": true,
         "mongosh": true,
         "printf": true,
-        "lsof": true
+        "lsof": true,
+        "timeout": true
     }
 }

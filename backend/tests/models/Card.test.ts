@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import Card from "../../models/Card.js";
+import Card, { ICardDocument } from "../../models/Card.js";
 
 describe("Card Model", () => {
   describe("Validation", () => {
@@ -196,6 +196,26 @@ describe("Card Model", () => {
 
       expect(savedCard.isPublished).toBe(true);
       expect(savedCard.publishedAt).toBeDefined();
+    });
+  });
+
+  describe("Virtual Properties", () => {
+    it("should calculate totalTiles correctly", async () => {
+      const cardData = {
+        title: "Test Card",
+        rows: 3,
+        columns: 4,
+        tiles: Array.from({ length: 12 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      };
+
+      const card = new Card(cardData);
+      const savedCard: ICardDocument = await card.save();
+
+      // Access virtual property with proper typing
+      expect(savedCard.totalTiles).toBe(12);
     });
   });
 });

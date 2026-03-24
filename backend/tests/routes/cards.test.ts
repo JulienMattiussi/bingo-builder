@@ -182,6 +182,59 @@ describe("Card Routes", () => {
       expect(response.body.title).toBe("Updated Title");
     });
 
+    it("should update only title without changing other fields", async () => {
+      const card = await Card.create({
+        title: "Original Title",
+        createdBy: "user1",
+        rows: 3,
+        columns: 3,
+        tiles: Array.from({ length: 9 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      const response = await request(app)
+        .put(`/api/cards/${card._id}`)
+        .send({ title: "New Title", createdBy: "user1" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.title).toBe("New Title");
+      expect(response.body.rows).toBe(3);
+      expect(response.body.columns).toBe(3);
+      expect(response.body.tiles).toHaveLength(9);
+    });
+
+    it("should update rows and columns", async () => {
+      const card = await Card.create({
+        title: "Card",
+        createdBy: "user1",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      const response = await request(app)
+        .put(`/api/cards/${card._id}`)
+        .send({
+          rows: 3,
+          columns: 3,
+          tiles: Array.from({ length: 9 }, (_, i) => ({
+            value: `New Tile ${i}`,
+            position: i,
+          })),
+          createdBy: "user1",
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.rows).toBe(3);
+      expect(response.body.columns).toBe(3);
+      expect(response.body.tiles).toHaveLength(9);
+    });
+
     it("should return 404 for non-existent card", async () => {
       const fakeId = "507f1f77bcf86cd799439011";
       const response = await request(app)
@@ -371,7 +424,7 @@ describe("Card Routes", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.isPublished).toBe(false);
-      expect(response.body.publishedAt).toBeNull();
+      expect(response.body.publishedAt).toBeUndefined();
     });
 
     it("should return 400 when card is not published", async () => {
@@ -481,6 +534,170 @@ describe("Card Routes", () => {
         .query({ createdBy: "user2" });
 
       expect(response.status).toBe(403);
+    });
+  });
+
+  describe("POST /api/cards/delete-by-creator", () => {
+    it("should delete all cards by creator", async () => {
+      // Create multiple cards by same creator
+      await Card.create({
+        title: "Card 1",
+        createdBy: "user1",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      await Card.create({
+        title: "Card 2",
+        createdBy: "user1",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      await Card.create({
+        title: "Card 3",
+        createdBy: "user2",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      const response = await request(app)
+        .post("/api/cards/delete-by-creator")
+        .send({ createdBy: "user1" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.deletedCount).toBe(2);
+      expect(response.body.message).toBe("Successfully deleted 2 card(s)");
+
+      // Verify only user1's cards were deleted
+      const remainingCards = await Card.find({});
+      expect(remainingCards).toHaveLength(1);
+      expect(remainingCards[0].createdBy).toBe("user2");
+    });
+
+    it("should return 0 when no cards match creator", async () => {
+      const response = await request(app)
+        .post("/api/cards/delete-by-creator")
+        .send({ createdBy: "nonexistent" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.deletedCount).toBe(0);
+    });
+
+    it("should validate required createdBy field", async () => {
+      const response = await request(app)
+        .post("/api/cards/delete-by-creator")
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Validation failed");
+    });
+  });
+
+  describe("POST /api/cards/update-creator", () => {
+    it("should update creator name for all matching cards", async () => {
+      // Create cards with old creator name
+      await Card.create({
+        title: "Card 1",
+        createdBy: "oldName",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      await Card.create({
+        title: "Card 2",
+        createdBy: "oldName",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      await Card.create({
+        title: "Card 3",
+        createdBy: "otherUser",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      const response = await request(app)
+        .post("/api/cards/update-creator")
+        .send({ oldName: "oldName", newName: "newName" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.modifiedCount).toBe(2);
+      expect(response.body.message).toBe("Successfully updated 2 card(s)");
+
+      // Verify updates
+      const updatedCards = await Card.find({ createdBy: "newName" });
+      expect(updatedCards).toHaveLength(2);
+
+      const unchangedCards = await Card.find({ createdBy: "otherUser" });
+      expect(unchangedCards).toHaveLength(1);
+    });
+
+    it("should return 0 when no cards match old name", async () => {
+      const response = await request(app)
+        .post("/api/cards/update-creator")
+        .send({ oldName: "nonexistent", newName: "newName" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.modifiedCount).toBe(0);
+    });
+
+    it("should validate required fields", async () => {
+      const response = await request(app)
+        .post("/api/cards/update-creator")
+        .send({ oldName: "test" }); // Missing newName
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Validation failed");
+    });
+
+    it("should trim whitespace from creator names", async () => {
+      await Card.create({
+        title: "Test Card",
+        createdBy: "oldUser",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      const response = await request(app)
+        .post("/api/cards/update-creator")
+        .send({ oldName: " oldUser ", newName: " newUser " });
+
+      expect(response.status).toBe(200);
+
+      // Verify trimmed name was used
+      const updatedCard = await Card.findOne({ createdBy: "newUser" });
+      expect(updatedCard).toBeTruthy();
+      expect(updatedCard?.createdBy).toBe("newUser");
     });
   });
 });

@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for components/BingoGridEditor.tsx</title>
+    <title>Code coverage report for middleware/rateLimiter.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">components</a> BingoGridEditor.tsx</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">middleware</a> rateLimiter.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>6/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>2/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>8/8</span>
+                <span class='fraction'>6/8</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -119,40 +119,26 @@
 <a name='L54'></a><a href='#L54'>54</a>
 <a name='L55'></a><a href='#L55'>55</a>
 <a name='L56'></a><a href='#L56'>56</a>
-<a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a>
-<a name='L59'></a><a href='#L59'>59</a>
-<a name='L60'></a><a href='#L60'>60</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L57'></a><a href='#L57'>57</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -164,7 +150,18 @@
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -176,70 +173,64 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
- * BingoGridEditor Component
- * Editable grid of bingo tiles
- */
-import { Tile } from "../types/models";
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import rateLimit from "express-rate-limit";
+import config from "../config/config.js";
 &nbsp;
-interface BingoGridEditorProps {
-  tiles: Tile[];
-  rows: number;
-  columns: number;
-  onTileChange: (position: number, value: string) =&gt; void;
-  onTileClick?: (tile: Tile) =&gt; void;
-}
+// General API rate limiter
+// Configurable via RATE_LIMIT_API_WINDOW_MS and RATE_LIMIT_API_MAX
+export const apiLimiter = rateLimit({
+  windowMs: config.get("rateLimit.apiWindowMs"),
+  max: config.get("rateLimit.apiMaxRequests"),
+  message: {
+    message: "Too many requests from this IP, please try again later.",
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Skip rate limiting in test environment
+<span class="fstat-no" title="function not covered" >  skip: () =&gt; <span class="cstat-no" title="statement not covered" >c</span>onfig.get("env") === "test",</span>
+});
 &nbsp;
-function BingoGridEditor({
-  tiles,
-  rows,
-  columns,
-  onTileChange,
-  onTileClick,
-}: BingoGridEditorProps) {
-  const isMobile = () =&gt; window.innerWidth &lt; 768;
+// Stricter rate limiter for write operations (POST, PUT, DELETE)
+// Configurable via RATE_LIMIT_WRITE_WINDOW_MS and RATE_LIMIT_WRITE_MAX
+export const writeOperationsLimiter = rateLimit({
+  windowMs: config.get("rateLimit.writeWindowMs"),
+  max: config.get("rateLimit.writeMaxRequests"),
+  message: {
+    message:
+      "Too many write operations from this IP, please try again after 15 minutes.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () =&gt; config.get("env") === "test",
+});
 &nbsp;
-  const handleTileClick = (tile: Tile, index: number) =&gt; {
-    // On mobile, open full-size editor modal
-    if (onTileClick &amp;&amp; isMobile()) {
-      onTileClick({ ...tile, position: index });
-    }
-  };
+// Very strict rate limiter for peer registration/updates
+// Configurable via RATE_LIMIT_PEER_WINDOW_MS and RATE_LIMIT_PEER_MAX
+export const peerOperationsLimiter = rateLimit({
+  windowMs: config.get("rateLimit.peerWindowMs"),
+  max: config.get("rateLimit.peerMaxRequests"),
+  message: {
+    message: "Too many peer operations, please slow down.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+<span class="fstat-no" title="function not covered" >  skip: () =&gt; <span class="cstat-no" title="statement not covered" >c</span>onfig.get("env") === "test",</span>
+});
 &nbsp;
-  return (
-    &lt;div
-      className="bingo-grid"
-      style={{
-        gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gridTemplateRows: `repeat(${rows}, 1fr)`,
-      }}
-    &gt;
-      {tiles.map((tile, index) =&gt; (
-        &lt;div
-          key={index}
-          className="bingo-tile"
-          onClick={() =&gt; handleTileClick(tile, index)}
-        &gt;
-          &lt;textarea
-            value={tile.value}
-            onChange={(e) =&gt; onTileChange(index, e.target.value)}
-            placeholder={`Tile ${index + 1}`}
-            maxLength={40}
-            rows={3}
-            readOnly={onTileClick &amp;&amp; isMobile()}
-          /&gt;
-        &lt;/div&gt;
-      ))}
-    &lt;/div&gt;
-  );
-}
-&nbsp;
-export default BingoGridEditor;
+// Aggressive rate limiter for card listing (prevent scraping)
+// Configurable via RATE_LIMIT_LIST_WINDOW_MS and RATE_LIMIT_LIST_MAX
+export const listOperationsLimiter = rateLimit({
+  windowMs: config.get("rateLimit.listWindowMs"),
+  max: config.get("rateLimit.listMaxRequests"),
+  message: {
+    message: "Too many list requests, please slow down.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () =&gt; config.get("env") === "test",
+});
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -247,7 +238,7 @@ export default BingoGridEditor;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-22T12:42:25.463Z
+                at 2026-03-24T10:36:09.725Z
             </div>
         <script src="../prettify.js"></script>
         <script>

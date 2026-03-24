@@ -1,8 +1,16 @@
 import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "path";
+
+// Load .env.test if environment variables aren't already set
+// This allows both local development (loads from file) and CI (uses env vars)
+if (!process.env.VITE_API_PORT) {
+  dotenv.config({ path: path.resolve(__dirname, "../.env.test") });
+}
 
 // Use separate ports for E2E tests to avoid conflicts with dev servers
-const BACKEND_PORT = process.env.TEST_BACKEND_PORT || "3002";
-const FRONTEND_PORT = process.env.TEST_FRONTEND_PORT || "5173";
+const BACKEND_PORT = process.env.VITE_API_PORT || "3002";
+const FRONTEND_PORT = process.env.VITE_PORT || "5173";
 
 export default defineConfig({
   testDir: "./tests",
@@ -10,7 +18,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: "html",
+  reporter: process.env.CI ? "list" : [["list"], ["html", { open: "never" }]],
   use: {
     baseURL: `http://localhost:${FRONTEND_PORT}`,
     trace: "on-first-retry",
@@ -33,7 +41,7 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       env: {
         NODE_ENV: "test",
-        PORT: BACKEND_PORT,
+        VITE_API_PORT: BACKEND_PORT,
         MONGODB_URI: "mongodb://localhost:27018/bingo-test",
       },
     },
@@ -42,6 +50,9 @@ export default defineConfig({
       port: parseInt(FRONTEND_PORT),
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI,
+      env: {
+        VITE_API_PORT: BACKEND_PORT,
+      },
     },
   ],
 

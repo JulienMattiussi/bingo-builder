@@ -1,4 +1,27 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+
+// TypeScript interfaces
+interface ITile {
+  value: string;
+  position: number;
+}
+
+interface ICard {
+  title: string;
+  createdBy: string;
+  rows: number;
+  columns: number;
+  tiles: ITile[];
+  isPublished: boolean;
+  publishedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Interface for document with virtuals
+export interface ICardDocument extends ICard, Document {
+  totalTiles: number;
+}
 
 const tileSchema = new mongoose.Schema({
   value: {
@@ -72,6 +95,6 @@ cardSchema.pre("save", function (next) {
   }
 });
 
-const Card = mongoose.model("Card", cardSchema);
+const Card = mongoose.model<ICardDocument>("Card", cardSchema);
 
 export default Card;
