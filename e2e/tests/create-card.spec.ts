@@ -38,7 +38,7 @@ test.describe("Create Card Flow", () => {
     await page.getByRole("button", { name: /save card/i }).click();
 
     // Name modal may appear again if creating first card
-    const nameModalInput = page.getByPlaceholder(/your name/i);
+    const nameModalInput = page.getByPlaceholder(/your (name|nickname)/i);
     if (await nameModalInput.isVisible({ timeout: 2000 })) {
       await nameModalInput.fill("TestPlayer");
       await page.getByRole("button", { name: /continue/i }).click();
