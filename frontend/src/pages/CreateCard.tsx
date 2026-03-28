@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
 import { userIdUtils } from "../utils/userId";
@@ -12,6 +12,7 @@ import { Tile } from "../types/models";
 
 function CreateCard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [title, setTitle] = useState("");
   const [rows, setRows] = useState(4);
   const [columns, setColumns] = useState(6);
@@ -33,6 +34,22 @@ function CreateCard() {
       setPlayerName(existingName);
     }
   }, []);
+
+  // Reset form when navigating to this page while already on it
+  useEffect(() => {
+    if (location.state?.reload) {
+      setTitle("");
+      setRows(4);
+      setColumns(6);
+      setTiles(
+        Array(24)
+          .fill("")
+          .map((_, i) => ({ value: "", position: i })),
+      );
+      setError(null);
+      setSelectedTile(null);
+    }
+  }, [location.state]);
 
   const handleGridSizeChange = (newRows: number, newColumns: number) => {
     const totalTiles = newRows * newColumns;

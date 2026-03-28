@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
 import { userIdUtils } from "../utils/userId";
@@ -8,6 +9,7 @@ import BingoCardItem from "../components/BingoCardItem";
 import { Card } from "../types/models";
 
 function Home() {
+  const location = useLocation();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +21,7 @@ function Home() {
     loadCards();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.state]);
 
   const loadCards = async () => {
     try {

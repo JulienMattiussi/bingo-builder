@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { playerNameUtils } from "../utils/playerName";
 import { userIdUtils } from "../utils/userId";
 import { api } from "../utils/api";
@@ -11,6 +11,7 @@ import config from "../config";
 
 function Profile() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentName, setCurrentName] = useState("");
   const [newName, setNewName] = useState("");
   const [userId, setUserId] = useState("");
@@ -38,7 +39,7 @@ function Profile() {
     setUserId(id);
     
     loadCards(id);
-  }, [navigate]);
+  }, [navigate, location.state]);
 
   const loadCards = async (currentUserId: string) => {
     try {
