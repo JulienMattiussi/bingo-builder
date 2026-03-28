@@ -146,6 +146,25 @@ function EditCard() {
     saveCard();
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this card? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+      const userId = userIdUtils.getUserId();
+      await api.deleteCard(id!, userId);
+      reloadStats(); // Refresh stats after delete
+      navigate("/");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handlePublish = async () => {
     // Check card limits
     if (stats && !stats.canPublish) {
@@ -246,6 +265,13 @@ function EditCard() {
           >
             {saving ? "Publishing..." : "Publish Card"}
           </button>
+          <button
+            className="danger"
+            onClick={handleDelete}
+            disabled={saving}
+          >
+            {saving ? "Deleting..." : "Delete Card"}
+          </button>
         </div>
       </div>
 
@@ -281,6 +307,14 @@ function EditCard() {
                 : tiles.filter((t) => !t.value.trim()).length > 0
                   ? "Fill all tiles to publish"
                   : "",
+          },
+          {
+            icon: "🗑️",
+            label: saving ? "Deleting..." : "Delete",
+            onClick: handleDelete,
+            disabled: saving,
+            variant: "danger",
+            ariaLabel: "Delete card",
           },
         ]}
       />
