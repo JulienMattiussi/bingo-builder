@@ -75,6 +75,53 @@ export const HealthCheckSchema = z
   .openapi("HealthCheck");
 
 /**
+ * Status Response Schema
+ */
+export const StatusSchema = z
+  .object({
+    status: z.enum(["ok", "degraded"]).openapi({
+      description: "Overall system status",
+      example: "ok",
+    }),
+    timestamp: z.string().openapi({
+      description: "Current timestamp (ISO 8601)",
+      example: "2024-03-24T10:30:00.000Z",
+    }),
+    uptime: z.number().openapi({
+      description: "Server uptime in seconds",
+      example: 3600.5,
+    }),
+    environment: z.string().openapi({
+      description: "Current environment",
+      example: "development",
+    }),
+    database: z
+      .object({
+        status: z
+          .enum(["connected", "connecting", "disconnecting", "disconnected"])
+          .openapi({
+            description: "Database connection status",
+          }),
+        name: z.string().openapi({
+          description: "Database name",
+          example: "bingo-builder",
+        }),
+        host: z.string().openapi({
+          description: "Database host",
+          example: "localhost:27017",
+        }),
+      })
+      .openapi({
+        description: "Database connection information",
+      }),
+    version: z.string().openapi({
+      description: "API version",
+      example: "1.0.0",
+    }),
+  })
+  .openapi("Status");
+
+/**
  * MongoDB ObjectId Parameter Schema
  */
 export const MongoIdParamSchema = z

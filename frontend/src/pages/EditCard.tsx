@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
+import { userIdUtils } from "../utils/userId";
 import { useCardStats } from "../hooks/useCardStats";
 import MobileActionBar from "../components/MobileActionBar";
 import CardNameModal from "../components/CardNameModal";
@@ -50,8 +51,8 @@ function EditCard() {
       }
 
       // Check if current player is the owner
-      const currentPlayerName = playerNameUtils.getPlayerName();
-      if (data.createdBy && data.createdBy !== currentPlayerName) {
+      const currentUserId = userIdUtils.getUserId();
+      if (data.ownerId && data.ownerId !== currentUserId) {
         setError(
           "You are not the owner of this card. Only the owner can edit it.",
         );
@@ -110,9 +111,14 @@ function EditCard() {
     try {
       setSaving(true);
       setError(null);
+      
+      // Get user ID for ownership verification
+      const userId = userIdUtils.getUserId();
+      
       await api.updateCard(id, {
         title: title.trim(),
         createdBy: playerName.trim(),
+        ownerId: userId,
         rows,
         columns,
         tiles,
@@ -169,8 +175,8 @@ function EditCard() {
     try {
       setSaving(true);
       setError(null);
-      const currentPlayerName = playerNameUtils.getPlayerName();
-      await api.publishCard(id!, currentPlayerName);
+      const userId = userIdUtils.getUserId();
+      await api.publishCard(id!, userId);
       reloadStats(); // Refresh stats after publish
       navigate("/");
     } catch (err) {

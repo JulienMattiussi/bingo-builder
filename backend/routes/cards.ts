@@ -10,7 +10,6 @@ import {
   CardInputSchema,
   CardUpdateSchema,
   OwnershipSchema,
-  DeleteByCreatorSchema,
   UpdateCreatorSchema,
 } from "../schemas/card.js";
 
@@ -80,6 +79,7 @@ router.post("/", writeOperationsLimiter, async (req, res) => {
     const card = new Card({
       title: validated.title,
       createdBy: validated.createdBy || "",
+      ownerId: validated.ownerId,
       rows: validated.rows,
       columns: validated.columns,
       tiles: validated.tiles,
@@ -115,12 +115,8 @@ router.put("/:id", writeOperationsLimiter, async (req, res) => {
       return res.status(403).json({ message: "Cannot edit a published card" });
     }
 
-    // Check ownership
-    if (
-      card.createdBy &&
-      validated.createdBy &&
-      card.createdBy !== validated.createdBy
-    ) {
+    // Check ownership using secret user ID
+    if (card.ownerId !== validated.ownerId) {
       return res
         .status(403)
         .json({ message: "You are not the owner of this card" });
@@ -158,7 +154,7 @@ router.put("/:id", writeOperationsLimiter, async (req, res) => {
 router.post("/:id/publish", writeOperationsLimiter, async (req, res) => {
   try {
     // Validate with Zod
-    const { createdBy } = OwnershipSchema.parse(req.body || {});
+    const { ownerId } = OwnershipSchema.parse(req.body || {});
 
     const card = await Card.findById(req.params.id);
     if (!card) {
@@ -169,8 +165,8 @@ router.post("/:id/publish", writeOperationsLimiter, async (req, res) => {
       return res.status(400).json({ message: "Card is already published" });
     }
 
-    // Check ownership
-    if (card.createdBy && createdBy && card.createdBy !== createdBy) {
+    // Check ownership using secret user ID
+    if (card.ownerId !== ownerId) {
       return res
         .status(403)
         .json({ message: "Only the owner can publish this card" });
@@ -216,7 +212,7 @@ router.post("/:id/publish", writeOperationsLimiter, async (req, res) => {
 router.post("/:id/unpublish", writeOperationsLimiter, async (req, res) => {
   try {
     // Validate with Zod
-    const { createdBy } = OwnershipSchema.parse(req.body || {});
+    const { ownerId } = OwnershipSchema.parse(req.body || {});
 
     const card = await Card.findById(req.params.id);
     if (!card) {
@@ -227,8 +223,8 @@ router.post("/:id/unpublish", writeOperationsLimiter, async (req, res) => {
       return res.status(400).json({ message: "Card is not published" });
     }
 
-    // Check ownership
-    if (card.createdBy && createdBy && card.createdBy !== createdBy) {
+    // Check ownership using secret user ID
+    if (card.ownerId !== ownerId) {
       return res
         .status(403)
         .json({ message: "Only the owner can unpublish this card" });
@@ -263,9 +259,9 @@ router.delete("/:id", writeOperationsLimiter, async (req, res) => {
         .json({ message: "Cannot delete a published card" });
     }
 
-    // Check ownership
-    const { createdBy } = req.query;
-    if (card.createdBy && createdBy && card.createdBy !== createdBy) {
+    // Check ownership using secret user ID
+    const { ownerId } = req.query;
+    if (!ownerId || card.ownerId !== ownerId) {
       return res
         .status(403)
         .json({ message: "Only the owner can delete this card" });
@@ -278,14 +274,18 @@ router.delete("/:id", writeOperationsLimiter, async (req, res) => {
   }
 });
 
-// Delete all cards by creator (stricter rate limit)
+// Delete all cards by owner (stricter rate limit)
 router.post("/delete-by-creator", writeOperationsLimiter, async (req, res) => {
   try {
-    // Validate with Zod
-    const { createdBy } = DeleteByCreatorSchema.parse(req.body);
+    // Validate with Zod - expect ownerId now
+    const ownerId = req.body.ownerId || req.body.createdBy; // Backward compatibility
+    
+    if (!ownerId) {
+      return res.status(400).json({ message: "Owner ID is required" });
+    }
 
-    // Delete all cards created by this user
-    const result = await Card.deleteMany({ createdBy: createdBy.trim() });
+    // Delete all cards owned by this user
+    const result = await Card.deleteMany({ ownerId: ownerId.trim() });
 
     res.json({
       message: `Successfully deleted ${result.deletedCount} card(s)`,
@@ -303,14 +303,20 @@ router.post("/delete-by-creator", writeOperationsLimiter, async (req, res) => {
 });
 
 // Update creator name for all cards (stricter rate limit)
+// This updates the public nickname only, not the ownerId
 router.post("/update-creator", writeOperationsLimiter, async (req, res) => {
   try {
     // Validate with Zod
     const { oldName, newName } = UpdateCreatorSchema.parse(req.body);
+    const ownerId = req.body.ownerId;
 
-    // Update all cards with the old creator name
+    if (!ownerId) {
+      return res.status(400).json({ message: "Owner ID is required" });
+    }
+
+    // Update all cards with the old creator name AND matching ownerId (for security)
     const result = await Card.updateMany(
-      { createdBy: oldName.trim() },
+      { createdBy: oldName.trim(), ownerId: ownerId.trim() },
       { $set: { createdBy: newName.trim() } },
     );
 

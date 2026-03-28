@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
+import { userIdUtils } from "../utils/userId";
 import { useCardProgress } from "../hooks/useCardProgress";
 import { useCardStats } from "../hooks/useCardStats";
 import BingoCardItem from "../components/BingoCardItem";
@@ -36,10 +37,11 @@ function Home() {
 
   const sortCardsByPriority = (cardsData: Card[]) => {
     const currentPlayer = currentPlayerName;
+    const currentUserId = userIdUtils.getUserId();
 
     return cardsData.sort((a, b) => {
-      const aOwner = a.createdBy === currentPlayer;
-      const bOwner = b.createdBy === currentPlayer;
+      const aOwner = a.ownerId === currentUserId;
+      const bOwner = b.ownerId === currentUserId;
       const aProgress = getCardProgress(a._id, a.tiles.length);
       const bProgress = getCardProgress(b._id, b.tiles.length);
 
@@ -78,7 +80,8 @@ function Home() {
     if (!window.confirm("Are you sure you want to delete this card?")) return;
 
     try {
-      await api.deleteCard(id, currentPlayerName);
+      const userId = userIdUtils.getUserId();
+      await api.deleteCard(id, userId);
       await loadCards();
       reloadStats(); // Refresh stats after delete
     } catch (err) {
@@ -95,7 +98,8 @@ function Home() {
       return;
 
     try {
-      await api.unpublishCard(id, currentPlayerName);
+      const userId = userIdUtils.getUserId();
+      await api.unpublishCard(id, userId);
       await loadCards();
       reloadStats(); // Refresh stats after unpublish
     } catch (err) {

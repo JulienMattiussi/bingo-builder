@@ -2,21 +2,11 @@ import { Card } from "../types/models";
 
 const API_BASE_URL = "/api";
 
-interface CardData {
-  title: string;
-  createdBy: string;
-  rows: number;
-  columns: number;
-  tiles: Array<{ value: string; position: number }>;
-}
-
-interface UpdateCardData {
-  title: string;
-  createdBy: string;
-  rows: number;
-  columns: number;
-  tiles: Array<{ value: string; position: number }>;
-}
+// Card data for create/update operations (omits database-generated fields)
+type CardMutationData = Omit<
+  Card,
+  "_id" | "isPublished" | "publishedAt" | "createdAt" | "updatedAt"
+>;
 
 interface CardStats {
   published: number;
@@ -50,7 +40,7 @@ export const api = {
   },
 
   // Create a new card
-  async createCard(cardData: CardData): Promise<Card> {
+  async createCard(cardData: CardMutationData): Promise<Card> {
     const response = await fetch(`${API_BASE_URL}/cards`, {
       method: "POST",
       headers: {
@@ -66,7 +56,7 @@ export const api = {
   },
 
   // Update a card
-  async updateCard(id: string, cardData: UpdateCardData): Promise<Card> {
+  async updateCard(id: string, cardData: CardMutationData): Promise<Card> {
     const response = await fetch(`${API_BASE_URL}/cards/${id}`, {
       method: "PUT",
       headers: {
@@ -82,13 +72,13 @@ export const api = {
   },
 
   // Publish a card
-  async publishCard(id: string, createdBy: string): Promise<Card> {
+  async publishCard(id: string, ownerId: string): Promise<Card> {
     const response = await fetch(`${API_BASE_URL}/cards/${id}/publish`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ createdBy }),
+      body: JSON.stringify({ ownerId }),
     });
     if (!response.ok) {
       const error = await response.json();
@@ -98,13 +88,13 @@ export const api = {
   },
 
   // Unpublish a card
-  async unpublishCard(id: string, createdBy: string): Promise<Card> {
+  async unpublishCard(id: string, ownerId: string): Promise<Card> {
     const response = await fetch(`${API_BASE_URL}/cards/${id}/unpublish`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ createdBy }),
+      body: JSON.stringify({ ownerId }),
     });
     if (!response.ok) {
       const error = await response.json();
@@ -116,10 +106,10 @@ export const api = {
   // Delete a card
   async deleteCard(
     id: string,
-    createdBy: string,
+    ownerId: string,
   ): Promise<{ message: string }> {
-    const url = createdBy
-      ? `${API_BASE_URL}/cards/${id}?createdBy=${encodeURIComponent(createdBy)}`
+    const url = ownerId
+      ? `${API_BASE_URL}/cards/${id}?ownerId=${encodeURIComponent(ownerId)}`
       : `${API_BASE_URL}/cards/${id}`;
     const response = await fetch(url, {
       method: "DELETE",
@@ -131,16 +121,16 @@ export const api = {
     return response.json();
   },
 
-  // Delete all cards by creator
+  // Delete all cards by owner
   async deleteCardsByCreator(
-    createdBy: string,
+    ownerId: string,
   ): Promise<{ message: string; deletedCount: number }> {
     const response = await fetch(`${API_BASE_URL}/cards/delete-by-creator`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ createdBy }),
+      body: JSON.stringify({ ownerId }),
     });
     if (!response.ok) {
       const error = await response.json();
@@ -150,13 +140,13 @@ export const api = {
   },
 
   // Update creator name for all cards
-  async updateCreatorName(oldName: string, newName: string) {
+  async updateCreatorName(oldName: string, newName: string, ownerId: string) {
     const response = await fetch(`${API_BASE_URL}/cards/update-creator`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ oldName, newName }),
+      body: JSON.stringify({ oldName, newName, ownerId }),
     });
     if (!response.ok) {
       const error = await response.json();

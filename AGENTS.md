@@ -97,7 +97,7 @@ VITE_MAX_PLAYERS_PER_CARD=6
 2. Add to `.env.test` and `.env.test.example` if needed for tests
 3. Update schema in `backend/config/config.ts` OR `frontend/src/config.ts`
 4. Add TypeScript types in `frontend/vite-env.d.ts` for frontend vars
-5. Update `Documentation/CONFIGURATION.md`
+5. Update `documentation/CONFIGURATION.md`
 
 ---
 
@@ -168,10 +168,10 @@ make preview       # Preview production build
 
 ### Documentation Structure
 
-All documentation is organized in the `Documentation/` folder (except `README.md`):
+All documentation is organized in the `documentation/` folder (except `README.md`):
 
 ```
-Documentation/
+documentation/
 ├── CODE_QUALITY.md          # Linting, formatting, editor setup
 ├── CONFIGURATION.md         # Environment variables, Convict usage
 ├── TESTING_QUICK_REF.md     # Testing guide and examples
@@ -669,6 +669,74 @@ When adding API endpoints:
 - ✅ **Less Code**: No manual validation in route handlers
 - ✅ **Early Detection**: Catches invalid requests before business logic
 
+### Health Check Endpoints
+
+**Purpose**: Monitor application health and system status.
+
+**Available Endpoints**:
+
+1. **GET /api/health** - Simple health check
+   - **No rate limiting** - Can be called frequently by monitoring services
+   - **Response**: `{ "status": "ok" }`
+   - **Use for**: Basic liveness probes, uptime monitoring
+
+2. **GET /api/status** - Detailed system status
+   - **No rate limiting** - Available for monitoring and diagnostics
+   - **Response includes**:
+     - `status`: "ok" or "degraded"
+     - `timestamp`: Current ISO 8601 timestamp
+     - `uptime`: Server uptime in seconds
+     - `environment`: development/test/production
+     - `database`: Connection status, name, and host
+     - `version`: API version
+   - **HTTP Status Codes**:
+     - `200`: System is healthy (database connected)
+     - `503`: System is degraded (database disconnected)
+   - **Use for**: Detailed diagnostics, readiness probes, dashboard monitoring
+
+**Example Response** (`/api/status`):
+```json
+{
+  "status": "ok",
+  "timestamp": "2024-03-24T10:30:00.000Z",
+  "uptime": 3600.5,
+  "environment": "development",
+  "database": {
+    "status": "connected",
+    "name": "bingo-builder",
+    "host": "localhost:27017"
+  },
+  "version": "1.0.0"
+}
+```
+
+**Implementation Details**:
+- **Schema**: `StatusSchema` in `backend/schemas/common.ts`
+- **Route**: Defined in `backend/server.ts` (not in separate route file)
+- **Database Check**: Uses Mongoose `connection.readyState` to determine connectivity
+- **OpenAPI**: Fully documented in `backend/openapi.yaml` under "health" tag
+
+**Testing Health Endpoints**:
+```bash
+# Simple health check
+curl http://localhost:3001/api/health
+
+# Detailed status
+curl http://localhost:3001/api/status | jq
+
+# Check if service is ready (exit code 0 if healthy)
+curl -f http://localhost:3001/api/status || echo "Service not ready"
+```
+
+**Rules**:
+1. ✅ **DO**: Use `/api/health` for simple uptime checks
+2. ✅ **DO**: Use `/api/status` for detailed diagnostics and readiness checks
+3. ✅ **DO**: Monitor the `database.status` field for connectivity issues
+4. ✅ **DO**: Check HTTP status code (200 vs 503) for overall health
+5. ❌ **DON'T**: Add rate limiting to health endpoints
+6. ❌ **DON'T**: Include sensitive information in status responses
+7. ❌ **DON'T**: Make health checks depend on external services (only internal state)
+
 ---
 
 ## �📱 Frontend Responsive Design
@@ -877,7 +945,7 @@ Before submitting code, verify:
 
 - [ ] Configuration changes updated in `.env`, `.env.example`, `.env.test`, `.env.test.example`, and schemas
 - [ ] Used Makefile commands instead of direct npm/docker commands
-- [ ] Documentation updated in `Documentation/` folder
+- [ ] Documentation updated in `documentation/` folder
 - [ ] All TypeScript files compile without errors
 - [ ] Code passes `make check` (formatting + linting)
 - [ ] Tests added/updated and passing (`make test`)
@@ -894,10 +962,10 @@ Before submitting code, verify:
 
 ## 📖 Additional Resources
 
-- [Configuration Guide](Documentation/CONFIGURATION.md)
-- [Code Quality Guide](Documentation/CODE_QUALITY.md)
-- [Testing Quick Reference](Documentation/TESTING_QUICK_REF.md)
-- [Test Data Isolation](Documentation/TEST_DATA_ISOLATION.md)
+- [Configuration Guide](documentation/CONFIGURATION.md)
+- [Code Quality Guide](documentation/CODE_QUALITY.md)
+- [Testing Quick Reference](documentation/TESTING_QUICK_REF.md)
+- [Test Data Isolation](documentation/TEST_DATA_ISOLATION.md)
 - [Makefile Commands](./#help) - Run `make help`
 
 Follow these guidelines to maintain code quality and consistency across the Bingo Builder project. When in doubt, refer to existing code patterns and documentation.

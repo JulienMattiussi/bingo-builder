@@ -1,12 +1,16 @@
 import { describe, it, expect } from "vitest";
 import Card, { ICardDocument } from "../../models/Card.js";
 
+// Test user ID for ownership
+const TEST_OWNER_ID = "550e8400-e29b-41d4-a716-446655440000";
+
 describe("Card Model", () => {
   describe("Validation", () => {
     it("should create a valid card with all required fields", async () => {
       const cardData = {
         title: "Test Bingo Card",
         createdBy: "test-user",
+        ownerId: TEST_OWNER_ID,
         rows: 3,
         columns: 3,
         tiles: Array.from({ length: 9 }, (_, i) => ({
@@ -22,6 +26,7 @@ describe("Card Model", () => {
       expect(savedCard._id).toBeDefined();
       expect(savedCard.title).toBe(cardData.title);
       expect(savedCard.createdBy).toBe(cardData.createdBy);
+      expect(savedCard.ownerId).toBe(TEST_OWNER_ID);
       expect(savedCard.rows).toBe(cardData.rows);
       expect(savedCard.columns).toBe(cardData.columns);
       expect(savedCard.tiles).toHaveLength(9);
@@ -104,6 +109,7 @@ describe("Card Model", () => {
     it("should trim title whitespace", async () => {
       const cardData = {
         title: "  Test Card  ",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
@@ -121,6 +127,7 @@ describe("Card Model", () => {
     it("should default createdBy to empty string if not provided", async () => {
       const cardData = {
         title: "Test Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
@@ -138,6 +145,7 @@ describe("Card Model", () => {
     it("should default isPublished to false", async () => {
       const cardData = {
         title: "Test Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
@@ -162,6 +170,7 @@ describe("Card Model", () => {
 
       const cardData = {
         title: "Test Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles,
@@ -181,6 +190,7 @@ describe("Card Model", () => {
     it("should set publishedAt when isPublished is true", async () => {
       const cardData = {
         title: "Test Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
@@ -203,6 +213,7 @@ describe("Card Model", () => {
     it("should calculate totalTiles correctly", async () => {
       const cardData = {
         title: "Test Card",
+        ownerId: TEST_OWNER_ID,
         rows: 3,
         columns: 4,
         tiles: Array.from({ length: 12 }, (_, i) => ({

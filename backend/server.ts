@@ -3,6 +3,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import * as OpenApiValidator from "express-openapi-validator";
+import mongoose from "mongoose";
 import connectDB from "./config/db.js";
 import cardRoutes from "./routes/cards.js";
 import peerRoutes from "./routes/peers.js";
@@ -53,6 +54,35 @@ app.use("/api/peers", peerRoutes);
 // Health check (no rate limit)
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
+});
+
+// Status endpoint with detailed system information (no rate limit)
+app.get("/api/status", (_req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const dbStatus =
+    dbState === 1
+      ? "connected"
+      : dbState === 2
+        ? "connecting"
+        : dbState === 3
+          ? "disconnecting"
+          : "disconnected";
+
+  const status = {
+    status: dbState === 1 ? "ok" : "degraded",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: config.get("env"),
+    database: {
+      status: dbStatus,
+      name: mongoose.connection.name || "unknown",
+      host: mongoose.connection.host || "unknown",
+    },
+    version: "1.0.0", // Could import from package.json if needed
+  };
+
+  const httpStatus = dbState === 1 ? 200 : 503;
+  res.status(httpStatus).json(status);
 });
 
 // OpenAPI validation error handler

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { playerNameUtils } from "../utils/playerName";
+import { userIdUtils } from "../utils/userId";
 import { api } from "../utils/api";
 import { useCardProgress } from "../hooks/useCardProgress";
 import BingoCardItem from "../components/BingoCardItem";
@@ -12,6 +13,7 @@ function Profile() {
   const navigate = useNavigate();
   const [currentName, setCurrentName] = useState("");
   const [newName, setNewName] = useState("");
+  const [userId, setUserId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -30,16 +32,21 @@ function Profile() {
     }
     setCurrentName(name);
     setNewName(name);
-    loadCards(name);
+    
+    // Get user ID
+    const id = userIdUtils.getUserId();
+    setUserId(id);
+    
+    loadCards(id);
   }, [navigate]);
 
-  const loadCards = async (playerName: string) => {
+  const loadCards = async (currentUserId: string) => {
     try {
       setLoadingCards(true);
       const allCards = await api.getCards();
 
-      // Filter owned cards
-      const owned = allCards.filter((card) => card.createdBy === playerName);
+      // Filter owned cards using ownerId
+      const owned = allCards.filter((card) => card.ownerId === currentUserId);
       setOwnedCards(owned);
 
       // Find played cards by checking localStorage
@@ -77,7 +84,7 @@ function Profile() {
 
     try {
       // Update creator name on all existing cards
-      const result = await api.updateCreatorName(currentName, newName);
+      const result = await api.updateCreatorName(currentName, newName, userId);
 
       // Update localStorage
       playerNameUtils.savePlayerName(newName);
@@ -92,8 +99,8 @@ function Profile() {
         setSuccess("Nickname updated successfully!");
       }
 
-      // Reload cards with new name
-      loadCards(newName);
+      // Reload cards with same user ID
+      loadCards(userId);
     } catch (err) {
       setError((err as Error).message || "Failed to update nickname");
     }
@@ -108,8 +115,8 @@ function Profile() {
       return;
 
     try {
-      await api.unpublishCard(cardId, currentName);
-      await loadCards(currentName);
+      await api.unpublishCard(cardId, userId);
+      await loadCards(userId);
       setSuccess("Card unpublished successfully!");
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
@@ -140,11 +147,12 @@ function Profile() {
       setDeleting(true);
       setError(null);
 
-      // Delete all cards created by this user
-      await api.deleteCardsByCreator(currentName);
+      // Delete all cards owned by this user
+      await api.deleteCardsByCreator(userId);
 
-      // Clear profile from localStorage
+      // Clear profile and user ID from localStorage
       playerNameUtils.clearPlayerName();
+      userIdUtils.clearUserId();
 
       // Redirect to home
       navigate("/");
@@ -235,6 +243,39 @@ function Profile() {
               </div>
             </div>
           )}
+        </div>
+
+        <hr style={{ margin: "2rem 0", border: "1px solid #dee2e6" }} />
+
+        {/* User ID Section */}
+        <div style={{ marginBottom: "2rem" }}>
+          <h2 style={{ marginBottom: "1rem", fontSize: "1.5rem" }}>
+            Your User ID
+          </h2>
+          <div
+            style={{
+              padding: "1rem",
+              backgroundColor: "#f8f9fa",
+              borderRadius: "0.5rem",
+              border: "1px solid #dee2e6",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "monospace",
+                fontSize: "0.9rem",
+                color: "#2c3e50",
+                wordBreak: "break-all",
+                marginBottom: "0.5rem",
+              }}
+            >
+              {userId}
+            </p>
+            <p style={{ color: "#7f8c8d", fontSize: "0.85rem", margin: 0 }}>
+              🔒 This is your secret ownership ID. Keep it private! It proves
+              you own your cards and cannot be changed.
+            </p>
+          </div>
         </div>
 
         <hr style={{ margin: "2rem 0", border: "1px solid #dee2e6" }} />

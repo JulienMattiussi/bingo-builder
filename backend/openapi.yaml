@@ -54,7 +54,13 @@ components:
         createdBy:
           type: string
           default: ""
-          description: Creator name
+          description: Creator name (public nickname)
+        ownerId:
+          type: string
+          format: uuid
+          description: Secret user ID for ownership verification (UUID v4) - never shared
+            with other users
+          example: 550e8400-e29b-41d4-a716-446655440000
         rows:
           type: integer
           minimum: 2
@@ -90,6 +96,7 @@ components:
       required:
         - _id
         - title
+        - ownerId
         - rows
         - columns
         - tiles
@@ -125,6 +132,11 @@ components:
           default: ""
           description: Creator name (optional)
           example: John Doe
+        ownerId:
+          type: string
+          format: uuid
+          description: Secret user ID for ownership verification (UUID v4)
+          example: 550e8400-e29b-41d4-a716-446655440000
         rows:
           type: integer
           minimum: 2
@@ -146,6 +158,7 @@ components:
           description: Array of tiles (length must equal rows × columns)
       required:
         - title
+        - ownerId
         - rows
         - columns
         - tiles
@@ -158,6 +171,11 @@ components:
           maxLength: 25
         createdBy:
           type: string
+        ownerId:
+          type: string
+          format: uuid
+          description: Secret user ID for ownership verification (UUID v4)
+          example: 550e8400-e29b-41d4-a716-446655440000
         rows:
           type: integer
           minimum: 2
@@ -172,6 +190,8 @@ components:
             $ref: "#/components/schemas/Tile"
           minItems: 4
           maxItems: 30
+      required:
+        - ownerId
     PeerInfo:
       type: object
       properties:
@@ -304,13 +324,69 @@ components:
           description: Health status
       required:
         - status
+    Status:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+            - degraded
+          description: Overall system status
+          example: ok
+        timestamp:
+          type: string
+          description: Current timestamp (ISO 8601)
+          example: 2024-03-24T10:30:00.000Z
+        uptime:
+          type: number
+          description: Server uptime in seconds
+          example: 3600.5
+        environment:
+          type: string
+          description: Current environment
+          example: development
+        database:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - connected
+                - connecting
+                - disconnecting
+                - disconnected
+              description: Database connection status
+            name:
+              type: string
+              description: Database name
+              example: bingo-builder
+            host:
+              type: string
+              description: Database host
+              example: localhost:27017
+          required:
+            - status
+            - name
+            - host
+          description: Database connection information
+        version:
+          type: string
+          description: API version
+          example: 1.0.0
+      required:
+        - status
+        - timestamp
+        - uptime
+        - environment
+        - database
+        - version
   parameters: {}
 paths:
   /api/cards:
     get:
       summary: List all cards
-      description:
-        Retrieve all bingo cards sorted by creation date (newest first).
+      description: Retrieve all bingo cards sorted by creation date (newest first).
         Rate limited to prevent scraping.
       tags:
         - cards
@@ -596,9 +672,16 @@ paths:
             schema:
               type: object
               properties:
+                ownerId:
+                  type: string
+                  format: uuid
+                  description: Secret user ID for ownership verification (UUID v4)
+                  example: 550e8400-e29b-41d4-a716-446655440000
                 createdBy:
                   type: string
-                  description: Creator name for ownership verification
+                  description: Creator name (optional, for backward compatibility)
+              required:
+                - ownerId
       responses:
         "200":
           description: Card published successfully
@@ -671,9 +754,16 @@ paths:
             schema:
               type: object
               properties:
+                ownerId:
+                  type: string
+                  format: uuid
+                  description: Secret user ID for ownership verification (UUID v4)
+                  example: 550e8400-e29b-41d4-a716-446655440000
                 createdBy:
                   type: string
-                  description: Creator name for ownership verification
+                  description: Creator name (optional, for backward compatibility)
+              required:
+                - ownerId
       responses:
         "200":
           description: Card unpublished successfully
@@ -844,8 +934,7 @@ paths:
   /api/peers/{cardId}/register:
     post:
       summary: Register or update a peer
-      description:
-        Register a player as an active peer for a card or update their
+      description: Register a player as an active peer for a card or update their
         information
       tags:
         - peers
@@ -1087,3 +1176,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthCheck"
+  /api/status:
+    get:
+      summary: System status
+      description: Get detailed system status including database connectivity, uptime,
+        and version information
+      tags:
+        - health
+      responses:
+        "200":
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        "503":
+          description: System is degraded (e.g., database connection issue)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"

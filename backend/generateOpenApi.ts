@@ -30,6 +30,7 @@ import {
   DeleteResponseSchema,
   UpdateResponseSchema,
   HealthCheckSchema,
+  StatusSchema,
   MongoIdParamSchema,
   CardIdParamSchema,
   PeerIdParamSchema,
@@ -514,6 +515,34 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: HealthCheckSchema,
+        },
+      },
+    },
+  },
+});
+
+// GET /api/status - Detailed status check
+registry.registerPath({
+  method: "get",
+  path: "/api/status",
+  summary: "System status",
+  description:
+    "Get detailed system status including database connectivity, uptime, and version information",
+  tags: ["health"],
+  responses: {
+    200: {
+      description: "System is healthy",
+      content: {
+        "application/json": {
+          schema: StatusSchema,
+        },
+      },
+    },
+    503: {
+      description: "System is degraded (e.g., database connection issue)",
+      content: {
+        "application/json": {
+          schema: StatusSchema,
         },
       },
     },

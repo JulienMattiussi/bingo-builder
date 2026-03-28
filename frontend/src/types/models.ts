@@ -7,10 +7,12 @@ export interface Card {
   _id: string;
   title: string;
   createdBy: string;
+  ownerId: string; // Secret user ID for ownership verification
   rows: number;
   columns: number;
   tiles: Tile[];
   isPublished: boolean;
+  publishedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 import { playerNameUtils } from "../utils/playerName";
+import { userIdUtils } from "../utils/userId";
 import MobileActionBar from "../components/MobileActionBar";
 import CardNameModal from "../components/CardNameModal";
 import BingoGridControls from "../components/BingoGridControls";
@@ -71,9 +72,14 @@ function CreateCard() {
     try {
       setSaving(true);
       setError(null);
+      
+      // Get or create user ID for ownership
+      const userId = userIdUtils.getUserId();
+      
       await api.createCard({
         title: title.trim(),
         createdBy: playerName.trim(),
+        ownerId: userId,
         rows,
         columns,
         tiles,

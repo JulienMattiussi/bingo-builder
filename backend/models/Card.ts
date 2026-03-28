@@ -9,6 +9,7 @@ interface ITile {
 interface ICard {
   title: string;
   createdBy: string;
+  ownerId: string; // Secret user ID for ownership verification
   rows: number;
   columns: number;
   tiles: ITile[];
@@ -49,6 +50,13 @@ const cardSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+    },
+    ownerId: {
+      type: String,
+      required: true,
+      trim: true,
+      // This is the secret user ID used for ownership verification
+      // Never send this to other users via peer communication
     },
     rows: {
       type: Number,

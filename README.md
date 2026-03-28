@@ -230,7 +230,7 @@ All configuration is stored in `.env` files at the root of the project:
 
 ### Complete Documentation
 
-See [Documentation/CONFIGURATION.md](Documentation/CONFIGURATION.md) for:
+See [documentation/CONFIGURATION.md](documentation/CONFIGURATION.md) for:
 - Complete configuration schema
 - Type-safe configuration access
 - Validation and error handling
@@ -425,7 +425,7 @@ npm run format        # Format code with Prettier
 npm run format:check  # Check formatting
 ```
 
-See [Documentation/CODE_QUALITY.md](Documentation/CODE_QUALITY.md) for detailed information about code quality tools, editor integration, and configuration.
+See [documentation/CODE_QUALITY.md](documentation/CODE_QUALITY.md) for detailed information about code quality tools, editor integration, and configuration.
 
 ## License
 

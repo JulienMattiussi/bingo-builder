@@ -4,6 +4,9 @@ import request from "supertest";
 import cardRoutes from "../../routes/cards.js";
 import Card from "../../models/Card.js";
 
+// Test user ID for ownership
+const TEST_OWNER_ID = "550e8400-e29b-41d4-a716-446655440000";
+
 const app = express();
 app.use(express.json());
 app.use("/api/cards", cardRoutes);
@@ -14,6 +17,7 @@ describe("Card Routes", () => {
       // Create test cards
       await Card.create({
         title: "First Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
@@ -24,6 +28,7 @@ describe("Card Routes", () => {
 
       await Card.create({
         title: "Second Card",
+        ownerId: TEST_OWNER_ID,
         rows: 3,
         columns: 3,
         tiles: Array.from({ length: 9 }, (_, i) => ({
@@ -52,6 +57,7 @@ describe("Card Routes", () => {
     it("should return a specific card by ID", async () => {
       const card = await Card.create({
         title: "Test Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 3,
         tiles: Array.from({ length: 6 }, (_, i) => ({
@@ -88,6 +94,7 @@ describe("Card Routes", () => {
       const cardData = {
         title: "New Card",
         createdBy: "test-user",
+        ownerId: TEST_OWNER_ID,
         rows: 3,
         columns: 3,
         tiles: Array.from({ length: 9 }, (_, i) => ({
@@ -139,8 +146,7 @@ describe("Card Routes", () => {
 
     it("should default createdBy to empty string if not provided", async () => {
       const cardData = {
-        title: "Anonymous Card",
-        rows: 2,
+        title: "Anonymous Card",        ownerId: TEST_OWNER_ID,        rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
           value: `Tile ${i}`,
@@ -159,6 +165,7 @@ describe("Card Routes", () => {
     it("should update an unpublished card", async () => {
       const card = await Card.create({
         title: "Original Title",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -185,6 +192,7 @@ describe("Card Routes", () => {
     it("should update only title without changing other fields", async () => {
       const card = await Card.create({
         title: "Original Title",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 3,
         columns: 3,
@@ -208,6 +216,7 @@ describe("Card Routes", () => {
     it("should update rows and columns", async () => {
       const card = await Card.create({
         title: "Card",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -247,6 +256,7 @@ describe("Card Routes", () => {
     it("should return 403 when editing published card", async () => {
       const card = await Card.create({
         title: "Published Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
@@ -267,6 +277,7 @@ describe("Card Routes", () => {
     it("should return 403 when non-owner tries to edit", async () => {
       const card = await Card.create({
         title: "User Card",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -287,6 +298,7 @@ describe("Card Routes", () => {
     it("should validate tiles count when updating tiles", async () => {
       const card = await Card.create({
         title: "Test Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
@@ -314,6 +326,7 @@ describe("Card Routes", () => {
     it("should publish a complete card", async () => {
       const card = await Card.create({
         title: "Complete Card",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -342,6 +355,7 @@ describe("Card Routes", () => {
     it("should return 400 when card is already published", async () => {
       const card = await Card.create({
         title: "Already Published",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
@@ -362,6 +376,7 @@ describe("Card Routes", () => {
     it("should return 403 when non-owner tries to publish", async () => {
       const card = await Card.create({
         title: "User Card",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -384,6 +399,7 @@ describe("Card Routes", () => {
     it("should return 400 when card has empty tiles", async () => {
       const card = await Card.create({
         title: "Incomplete Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: [
@@ -407,6 +423,7 @@ describe("Card Routes", () => {
     it("should unpublish a published card", async () => {
       const card = await Card.create({
         title: "Published Card",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -430,6 +447,7 @@ describe("Card Routes", () => {
     it("should return 400 when card is not published", async () => {
       const card = await Card.create({
         title: "Unpublished Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
@@ -449,6 +467,7 @@ describe("Card Routes", () => {
     it("should return 403 when non-owner tries to unpublish", async () => {
       const card = await Card.create({
         title: "User Card",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -471,6 +490,7 @@ describe("Card Routes", () => {
     it("should delete an unpublished card", async () => {
       const card = await Card.create({
         title: "To Delete",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -502,6 +522,7 @@ describe("Card Routes", () => {
     it("should return 403 when trying to delete published card", async () => {
       const card = await Card.create({
         title: "Published Card",
+        ownerId: TEST_OWNER_ID,
         rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
@@ -520,6 +541,7 @@ describe("Card Routes", () => {
     it("should return 403 when non-owner tries to delete", async () => {
       const card = await Card.create({
         title: "User Card",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -542,6 +564,7 @@ describe("Card Routes", () => {
       // Create multiple cards by same creator
       await Card.create({
         title: "Card 1",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -553,6 +576,7 @@ describe("Card Routes", () => {
 
       await Card.create({
         title: "Card 2",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user1",
         rows: 2,
         columns: 2,
@@ -564,6 +588,7 @@ describe("Card Routes", () => {
 
       await Card.create({
         title: "Card 3",
+        ownerId: TEST_OWNER_ID,
         createdBy: "user2",
         rows: 2,
         columns: 2,
@@ -611,6 +636,7 @@ describe("Card Routes", () => {
       // Create cards with old creator name
       await Card.create({
         title: "Card 1",
+        ownerId: TEST_OWNER_ID,
         createdBy: "oldName",
         rows: 2,
         columns: 2,
@@ -622,6 +648,7 @@ describe("Card Routes", () => {
 
       await Card.create({
         title: "Card 2",
+        ownerId: TEST_OWNER_ID,
         createdBy: "oldName",
         rows: 2,
         columns: 2,
@@ -633,6 +660,7 @@ describe("Card Routes", () => {
 
       await Card.create({
         title: "Card 3",
+        ownerId: TEST_OWNER_ID,
         createdBy: "otherUser",
         rows: 2,
         columns: 2,
@@ -679,6 +707,7 @@ describe("Card Routes", () => {
     it("should trim whitespace from creator names", async () => {
       await Card.create({
         title: "Test Card",
+        ownerId: TEST_OWNER_ID,
         createdBy: "oldUser",
         rows: 2,
         columns: 2,
