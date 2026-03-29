@@ -1,4 +1,11 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useCardStats } from "./hooks/useCardStats";
 import Home from "./pages/Home";
 import CreateCard from "./pages/CreateCard";
@@ -12,7 +19,10 @@ function NavigationContent() {
   const navigate = useNavigate();
   const { stats } = useCardStats();
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    path: string,
+  ) => {
     // If we're already on the target page, force a reload by navigating with a new timestamp
     if (location.pathname === path) {
       e.preventDefault();
@@ -26,18 +36,15 @@ function NavigationContent() {
   return (
     <div className="app">
       <nav className="navbar">
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="nav-brand"
           onClick={(e) => handleNavClick(e, "/")}
         >
           Bingo Builder
         </Link>
         <div className="nav-links">
-          <Link 
-            to="/"
-            onClick={(e) => handleNavClick(e, "/")}
-          >
+          <Link to="/" onClick={(e) => handleNavClick(e, "/")}>
             Home
           </Link>
           <Link
@@ -61,10 +68,7 @@ function NavigationContent() {
           >
             Create Card
           </Link>
-          <Link 
-            to="/profile"
-            onClick={(e) => handleNavClick(e, "/profile")}
-          >
+          <Link to="/profile" onClick={(e) => handleNavClick(e, "/profile")}>
             Profile
           </Link>
         </div>

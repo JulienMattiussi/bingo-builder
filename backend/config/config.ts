@@ -28,6 +28,20 @@ const config = convict({
       env: "CORS_ORIGIN",
     },
   },
+  security: {
+    superadminJwtSecret: {
+      doc: "JWT secret for super admin authentication",
+      format: String,
+      default: "change-me-in-production",
+      env: "SUPERADMIN_JWT_SECRET",
+    },
+    superadminDefaultPassword: {
+      doc: "Default password for super admin account on first initialization",
+      format: String,
+      default: "CHANGE_ME_REQUIRED",
+      env: "SUPERADMIN_DEFAULT_PASSWORD",
+    },
+  },
   database: {
     uri: {
       doc: "MongoDB connection URI (determined by environment file: .env or .env.test)",

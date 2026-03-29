@@ -146,7 +146,9 @@ describe("Card Routes", () => {
 
     it("should default createdBy to empty string if not provided", async () => {
       const cardData = {
-        title: "Anonymous Card",        ownerId: TEST_OWNER_ID,        rows: 2,
+        title: "Anonymous Card",
+        ownerId: TEST_OWNER_ID,
+        rows: 2,
         columns: 2,
         tiles: Array.from({ length: 4 }, (_, i) => ({
           value: `Tile ${i}`,

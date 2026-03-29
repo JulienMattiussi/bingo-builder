@@ -7,6 +7,8 @@ import mongoose from "mongoose";
 import connectDB from "./config/db.js";
 import cardRoutes from "./routes/cards.js";
 import peerRoutes from "./routes/peers.js";
+import superadminRoutes from "./routes/superadmin.js";
+import SuperAdmin from "./models/SuperAdmin.js";
 import config from "./config/config.js";
 import { apiLimiter } from "./middleware/rateLimiter.js";
 
@@ -30,6 +32,9 @@ const corsOptions = {
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" })); // Limit request body size
+
+// Super admin routes (mounted BEFORE OpenAPI validation for security)
+app.use("/api/superadmin", superadminRoutes);
 
 // OpenAPI validation middleware
 app.use(
@@ -112,6 +117,28 @@ app.use(
   },
 );
 
-app.listen(PORT, () => {
+// Initialize super admin on startup
+const initializeSuperAdmin = async () => {
+  try {
+    const existingAdmin = await SuperAdmin.findOne();
+    if (!existingAdmin) {
+      const defaultPassword = config.get("security.superadminDefaultPassword");
+      const admin = new SuperAdmin({
+        password: defaultPassword,
+        lastChanged: new Date(),
+      });
+      await admin.save();
+      console.log("✅ Super admin created with default password");
+      console.log("⚠️  IMPORTANT: Change the default password in production!");
+    }
+  } catch (error) {
+    console.error("❌ Failed to initialize super admin:", error);
+  }
+};
+
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
+
+  // Initialize super admin after server starts
+  await initializeSuperAdmin();
 });

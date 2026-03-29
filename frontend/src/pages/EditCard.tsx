@@ -111,10 +111,10 @@ function EditCard() {
     try {
       setSaving(true);
       setError(null);
-      
+
       // Get user ID for ownership verification
       const userId = userIdUtils.getUserId();
-      
+
       await api.updateCard(id, {
         title: title.trim(),
         createdBy: playerName.trim(),
@@ -147,7 +147,11 @@ function EditCard() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this card? This action cannot be undone.")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this card? This action cannot be undone.",
+      )
+    ) {
       return;
     }
 
@@ -265,11 +269,7 @@ function EditCard() {
           >
             {saving ? "Publishing..." : "Publish Card"}
           </button>
-          <button
-            className="danger"
-            onClick={handleDelete}
-            disabled={saving}
-          >
+          <button className="danger" onClick={handleDelete} disabled={saving}>
             {saving ? "Deleting..." : "Delete Card"}
           </button>
         </div>

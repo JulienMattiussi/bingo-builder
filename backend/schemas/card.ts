@@ -42,13 +42,10 @@ export const CardInputSchema = z
       description: "Creator name (optional)",
       example: "John Doe",
     }),
-    ownerId: z
-      .string()
-      .uuid("Invalid user ID format")
-      .openapi({
-        description: "Secret user ID for ownership verification (UUID v4)",
-        example: "550e8400-e29b-41d4-a716-446655440000",
-      }),
+    ownerId: z.string().uuid("Invalid user ID format").openapi({
+      description: "Secret user ID for ownership verification (UUID v4)",
+      example: "550e8400-e29b-41d4-a716-446655440000",
+    }),
     rows: z
       .number()
       .int()
@@ -92,13 +89,10 @@ export const CardUpdateSchema = z
       .max(config.get("limits.cardTitleMaxLength"))
       .optional(),
     createdBy: z.string().optional(),
-    ownerId: z
-      .string()
-      .uuid("Invalid user ID format")
-      .openapi({
-        description: "Secret user ID for ownership verification (UUID v4)",
-        example: "550e8400-e29b-41d4-a716-446655440000",
-      }),
+    ownerId: z.string().uuid("Invalid user ID format").openapi({
+      description: "Secret user ID for ownership verification (UUID v4)",
+      example: "550e8400-e29b-41d4-a716-446655440000",
+    }),
     rows: z.number().int().min(2).max(5).optional(),
     columns: z.number().int().min(2).max(6).optional(),
     tiles: z.array(TileSchema).min(4).max(30).optional(),
@@ -124,7 +118,8 @@ export const CardSchema = z
       description: "Creator name (public nickname)",
     }),
     ownerId: z.string().uuid().openapi({
-      description: "Secret user ID for ownership verification (UUID v4) - never shared with other users",
+      description:
+        "Secret user ID for ownership verification (UUID v4) - never shared with other users",
       example: "550e8400-e29b-41d4-a716-446655440000",
     }),
     rows: z.number().int().min(2).max(5).openapi({
@@ -155,13 +150,10 @@ export const CardSchema = z
  * Ownership verification schema
  */
 export const OwnershipSchema = z.object({
-  ownerId: z
-    .string()
-    .uuid("Invalid user ID format")
-    .openapi({
-      description: "Secret user ID for ownership verification (UUID v4)",
-      example: "550e8400-e29b-41d4-a716-446655440000",
-    }),
+  ownerId: z.string().uuid("Invalid user ID format").openapi({
+    description: "Secret user ID for ownership verification (UUID v4)",
+    example: "550e8400-e29b-41d4-a716-446655440000",
+  }),
   createdBy: z.string().optional().openapi({
     description: "Creator name (optional, for backward compatibility)",
   }),

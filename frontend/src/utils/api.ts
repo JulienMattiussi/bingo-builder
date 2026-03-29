@@ -104,10 +104,7 @@ export const api = {
   },
 
   // Delete a card
-  async deleteCard(
-    id: string,
-    ownerId: string,
-  ): Promise<{ message: string }> {
+  async deleteCard(id: string, ownerId: string): Promise<{ message: string }> {
     const url = ownerId
       ? `${API_BASE_URL}/cards/${id}?ownerId=${encodeURIComponent(ownerId)}`
       : `${API_BASE_URL}/cards/${id}`;
@@ -214,6 +211,110 @@ export const api = {
     );
     if (!response.ok) {
       throw new Error("Failed to send heartbeat");
+    }
+    return response.json();
+  },
+
+  // Super Admin endpoints (JWT protected)
+  async superAdminLogin(password: string): Promise<{ token: string }> {
+    const response = await fetch(`${API_BASE_URL}/superadmin/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Login failed");
+    }
+    return response.json();
+  },
+
+  async superAdminChangePassword(
+    token: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/superadmin/change-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to change password");
+    }
+    return response.json();
+  },
+
+  async superAdminListAllCards(token: string): Promise<Card[]> {
+    const response = await fetch(`${API_BASE_URL}/superadmin/cards`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to fetch cards");
+    }
+    return response.json();
+  },
+
+  async superAdminDeleteCard(
+    token: string,
+    cardId: string,
+  ): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/superadmin/cards/${cardId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to delete card");
+    }
+    return response.json();
+  },
+
+  async superAdminDeleteUser(
+    token: string,
+    ownerId: string,
+  ): Promise<{ message: string; deletedCardsCount: number }> {
+    const response = await fetch(
+      `${API_BASE_URL}/superadmin/users/${ownerId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to delete user");
+    }
+    return response.json();
+  },
+
+  async superAdminGetStats(token: string): Promise<{
+    totalCards: number;
+    publishedCards: number;
+    unpublishedCards: number;
+    totalUsers: number;
+  }> {
+    const response = await fetch(`${API_BASE_URL}/superadmin/stats`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to fetch stats");
     }
     return response.json();
   },

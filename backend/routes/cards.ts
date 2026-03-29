@@ -279,7 +279,7 @@ router.post("/delete-by-creator", writeOperationsLimiter, async (req, res) => {
   try {
     // Validate with Zod - expect ownerId now
     const ownerId = req.body.ownerId || req.body.createdBy; // Backward compatibility
-    
+
     if (!ownerId) {
       return res.status(400).json({ message: "Owner ID is required" });
     }

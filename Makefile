@@ -1,4 +1,4 @@
-.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db stop-test-db restart-db restart-test-db start-test-db db-logs db-status build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check typecheck typecheck-backend typecheck-frontend test test-backend test-frontend test-watch test-coverage coverage clean clean-all clean-test-data dev logs deploy preview check fix setup
+.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db stop-test-db restart-db restart-test-db start-test-db db-logs db-status db-clean-all superadmin-reset superadmin-reset-custom build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check typecheck typecheck-backend typecheck-frontend test test-backend test-frontend test-watch test-coverage coverage clean clean-all clean-test-data dev logs deploy preview check fix setup
 
 help: ## Display available commands
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -156,6 +156,23 @@ coverage: ## Run tests with coverage report and check thresholds (75%)
 
 clean-test-data: ## Clean test data (TestPlayer, TestUser, E2EPlayer) from production database
 	cd backend && npm run clean-test-data
+
+db-clean-all: ## Delete ALL cards from database (use with caution!)
+	@echo "⚠️  WARNING: This will delete ALL cards from the database!"
+	@echo "Press Ctrl+C to cancel, or Enter to proceed..."; read confirm
+	cd backend && npm run delete-all-cards
+
+superadmin-reset: ## Reset super admin password to default (from .env)
+	@echo "🔑 Resetting super admin password to default..."
+	cd backend && npm run reset-superadmin
+
+superadmin-reset-custom: ## Reset super admin password to custom value (usage: make superadmin-reset-custom PASSWORD=yourpassword)
+	@if [ -z "$(PASSWORD)" ]; then \
+		echo "❌ Error: PASSWORD variable is required"; \
+		echo "Usage: make superadmin-reset-custom PASSWORD=yourpassword"; \
+		exit 1; \
+	fi
+	cd backend && npm run reset-superadmin -- $(PASSWORD)
 
 # Cleanup commands
 

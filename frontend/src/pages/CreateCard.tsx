@@ -126,10 +126,10 @@ function CreateCard() {
     try {
       setSaving(true);
       setError(null);
-      
+
       // Get or create user ID for ownership
       const userId = userIdUtils.getUserId();
-      
+
       await api.createCard({
         title: title.trim(),
         createdBy: playerName.trim(),
@@ -150,10 +150,10 @@ function CreateCard() {
     try {
       setSaving(true);
       setError(null);
-      
+
       // Get or create user ID for ownership
       const userId = userIdUtils.getUserId();
-      
+
       // Create the card
       const newCard = await api.createCard({
         title: title.trim(),
@@ -163,7 +163,7 @@ function CreateCard() {
         columns,
         tiles,
       });
-      
+
       // Immediately publish it
       await api.publishCard(newCard._id, userId);
       reloadStats(); // Refresh stats after publish
@@ -186,7 +186,7 @@ function CreateCard() {
     }
     playerNameUtils.savePlayerName(playerName);
     setShowNameModal(false);
-    
+
     // Call the appropriate save function based on mode
     if (publishMode) {
       saveAndPublishCard();

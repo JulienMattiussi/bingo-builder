@@ -90,6 +90,7 @@ describe("API Utility", () => {
           position: i,
         })),
         createdBy: "user1",
+        ownerId: "test-owner-id",
       };
 
       const mockResponse = {
@@ -121,6 +122,7 @@ describe("API Utility", () => {
         columns: 3,
         tiles: [], // Wrong number of tiles
         createdBy: "user1",
+        ownerId: "test-owner-id",
       };
 
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
@@ -138,6 +140,7 @@ describe("API Utility", () => {
       const updates = {
         title: "Updated Title",
         createdBy: "user1",
+        ownerId: "test-owner-id",
         rows: 3,
         columns: 3,
         tiles: [],
@@ -176,6 +179,7 @@ describe("API Utility", () => {
         api.updateCard("123", {
           title: "Hack",
           createdBy: "hacker",
+          ownerId: "test-owner-id",
           rows: 2,
           columns: 2,
           tiles: [],
@@ -269,7 +273,7 @@ describe("API Utility", () => {
 
       await api.deleteCard("123", "user1");
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/cards/123?createdBy=user1"),
+        expect.stringContaining("/api/cards/123?ownerId=user1"),
         expect.objectContaining({
           method: "DELETE",
         }),
@@ -305,7 +309,7 @@ describe("API Utility", () => {
         expect.stringContaining("/api/cards/delete-by-creator"),
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({ createdBy: "user1" }),
+          body: JSON.stringify({ ownerId: "user1" }),
         }),
       );
     });
@@ -333,13 +337,21 @@ describe("API Utility", () => {
         json: async () => mockResponse,
       });
 
-      const result = await api.updateCreatorName("oldName", "newName");
+      const result = await api.updateCreatorName(
+        "oldName",
+        "newName",
+        "test-owner-id",
+      );
       expect(result.updatedCount).toBe(3);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/cards/update-creator"),
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({ oldName: "oldName", newName: "newName" }),
+          body: JSON.stringify({
+            oldName: "oldName",
+            newName: "newName",
+            ownerId: "test-owner-id",
+          }),
         }),
       );
     });
@@ -352,7 +364,7 @@ describe("API Utility", () => {
       });
 
       await expect(
-        api.updateCreatorName("oldName", "newName"),
+        api.updateCreatorName("oldName", "newName", "test-owner-id"),
       ).rejects.toThrow();
     });
   });
