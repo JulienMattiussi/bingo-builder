@@ -206,9 +206,11 @@ describe("Card Routes", () => {
         })),
       });
 
-      const response = await request(app)
-        .put(`/api/cards/${card._id}`)
-        .send({ title: "New Title", createdBy: "user1", ownerId: TEST_OWNER_ID });
+      const response = await request(app).put(`/api/cards/${card._id}`).send({
+        title: "New Title",
+        createdBy: "user1",
+        ownerId: TEST_OWNER_ID,
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.title).toBe("New Title");
@@ -292,9 +294,11 @@ describe("Card Routes", () => {
         })),
       });
 
-      const response = await request(app)
-        .put(`/api/cards/${card._id}`)
-        .send({ title: "Hacked", createdBy: "user2", ownerId: DIFFERENT_OWNER_ID });
+      const response = await request(app).put(`/api/cards/${card._id}`).send({
+        title: "Hacked",
+        createdBy: "user2",
+        ownerId: DIFFERENT_OWNER_ID,
+      });
 
       expect(response.status).toBe(403);
       expect(response.body.message).toBe("You are not the owner of this card");
@@ -681,7 +685,11 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .post("/api/cards/update-creator")
-        .send({ oldName: "oldName", newName: "newName", ownerId: TEST_OWNER_ID });
+        .send({
+          oldName: "oldName",
+          newName: "newName",
+          ownerId: TEST_OWNER_ID,
+        });
 
       expect(response.status).toBe(200);
       expect(response.body.modifiedCount).toBe(2);
@@ -698,7 +706,11 @@ describe("Card Routes", () => {
     it("should return 0 when no cards match old name", async () => {
       const response = await request(app)
         .post("/api/cards/update-creator")
-        .send({ oldName: "nonexistent", newName: "newName", ownerId: TEST_OWNER_ID });
+        .send({
+          oldName: "nonexistent",
+          newName: "newName",
+          ownerId: TEST_OWNER_ID,
+        });
 
       expect(response.status).toBe(200);
       expect(response.body.modifiedCount).toBe(0);
@@ -728,7 +740,11 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .post("/api/cards/update-creator")
-        .send({ oldName: " oldUser ", newName: " newUser ", ownerId: TEST_OWNER_ID });
+        .send({
+          oldName: " oldUser ",
+          newName: " newUser ",
+          ownerId: TEST_OWNER_ID,
+        });
 
       expect(response.status).toBe(200);
 
@@ -736,6 +752,329 @@ describe("Card Routes", () => {
       const updatedCard = await Card.findOne({ createdBy: "newUser" });
       expect(updatedCard).toBeTruthy();
       expect(updatedCard?.createdBy).toBe("newUser");
+    });
+  });
+
+  describe("GET /api/cards/export", () => {
+    it("should export user's cards with v2.0 format", async () => {
+      // Create test cards for export
+      await Card.create({
+        title: "Export Card 1",
+        ownerId: TEST_OWNER_ID,
+        createdBy: "TestUser",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      await Card.create({
+        title: "Export Card 2",
+        ownerId: TEST_OWNER_ID,
+        createdBy: "TestUser",
+        rows: 3,
+        columns: 3,
+        tiles: Array.from({ length: 9 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      const response = await request(app)
+        .get("/api/cards/export")
+        .query({ ownerId: TEST_OWNER_ID });
+
+      expect(response.status).toBe(200);
+      expect(response.body.version).toBe("2.0");
+      expect(response.body.cardCount).toBe(2);
+      expect(response.body.cards).toHaveLength(2);
+      expect(response.body.cards[0]._id).toBeDefined();
+      expect(response.body.user.ownerId).toBe(TEST_OWNER_ID);
+      expect(response.body.progress).toBeDefined();
+    });
+
+    it("should export empty array when user has no cards", async () => {
+      const response = await request(app)
+        .get("/api/cards/export")
+        .query({ ownerId: "non-existent-user-id" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.cardCount).toBe(0);
+      expect(response.body.cards).toHaveLength(0);
+    });
+
+    it("should return 400 when ownerId is missing", async () => {
+      const response = await request(app).get("/api/cards/export");
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Owner ID is required");
+    });
+  });
+
+  describe("POST /api/cards/import", () => {
+    it("should import new cards successfully", async () => {
+      const cardsToImport = [
+        {
+          title: "Imported Card 1",
+          createdBy: "ImportUser",
+          rows: 2,
+          columns: 2,
+          tiles: Array.from({ length: 4 }, (_, i) => ({
+            value: `Imported Tile ${i}`,
+            position: i,
+          })),
+          isPublished: false,
+        },
+        {
+          title: "Imported Card 2",
+          createdBy: "ImportUser",
+          rows: 3,
+          columns: 3,
+          tiles: Array.from({ length: 9 }, (_, i) => ({
+            value: `Imported Tile ${i}`,
+            position: i,
+          })),
+          isPublished: false,
+        },
+      ];
+
+      const response = await request(app)
+        .post("/api/cards/import")
+        .send({ ownerId: TEST_OWNER_ID, cards: cardsToImport });
+
+      expect(response.status).toBe(201);
+      expect(response.body.importedCount).toBe(2);
+      expect(response.body.skippedCount).toBe(0);
+      expect(response.body.errorCount).toBe(0);
+
+      // Verify cards were created
+      const importedCards = await Card.find({ ownerId: TEST_OWNER_ID });
+      expect(importedCards).toHaveLength(2);
+    });
+
+    it("should skip existing cards with same _id", async () => {
+      // Create a card first
+      const existingCard = await Card.create({
+        title: "Existing Card",
+        ownerId: TEST_OWNER_ID,
+        createdBy: "TestUser",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, i) => ({
+          value: `Tile ${i}`,
+          position: i,
+        })),
+      });
+
+      const cardsToImport = [
+        {
+          _id: existingCard._id.toString(),
+          title: "Existing Card",
+          createdBy: "TestUser",
+          rows: 2,
+          columns: 2,
+          tiles: Array.from({ length: 4 }, (_, i) => ({
+            value: `Tile ${i}`,
+            position: i,
+          })),
+          isPublished: false,
+        },
+        {
+          title: "New Card",
+          createdBy: "TestUser",
+          rows: 2,
+          columns: 2,
+          tiles: Array.from({ length: 4 }, (_, i) => ({
+            value: `New Tile ${i}`,
+            position: i,
+          })),
+          isPublished: false,
+        },
+      ];
+
+      const response = await request(app)
+        .post("/api/cards/import")
+        .send({ ownerId: TEST_OWNER_ID, cards: cardsToImport });
+
+      expect(response.status).toBe(201);
+      expect(response.body.importedCount).toBe(1);
+      expect(response.body.skippedCount).toBe(1);
+
+      // Verify only new card was added
+      const allCards = await Card.find({ ownerId: TEST_OWNER_ID });
+      expect(allCards).toHaveLength(2);
+    });
+
+    it("should return 400 when ownerId is missing", async () => {
+      const response = await request(app)
+        .post("/api/cards/import")
+        .send({ cards: [] });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Owner ID is required");
+    });
+
+    it("should return 400 when cards array is empty", async () => {
+      const response = await request(app)
+        .post("/api/cards/import")
+        .send({ ownerId: TEST_OWNER_ID, cards: [] });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("No cards to import");
+    });
+
+    it("should return 400 when cards is not an array", async () => {
+      const response = await request(app)
+        .post("/api/cards/import")
+        .send({ ownerId: TEST_OWNER_ID, cards: "not-an-array" });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("No cards to import");
+    });
+
+    it("should handle cards with invalid structure", async () => {
+      const cardsToImport = [
+        {
+          title: "Valid Card",
+          createdBy: "TestUser",
+          rows: 2,
+          columns: 2,
+          tiles: Array.from({ length: 4 }, (_, i) => ({
+            value: `Tile ${i}`,
+            position: i,
+          })),
+        },
+        {
+          // Missing required fields
+          title: "Invalid Card",
+        },
+      ];
+
+      const response = await request(app)
+        .post("/api/cards/import")
+        .send({ ownerId: TEST_OWNER_ID, cards: cardsToImport });
+
+      expect(response.status).toBe(201);
+      expect(response.body.importedCount).toBe(1);
+      expect(response.body.errorCount).toBe(1);
+      expect(response.body.errors).toHaveLength(1);
+      expect(response.body.errors[0].message).toBe("Missing required fields");
+    });
+
+    it("should prevent exceeding unpublished cards limit", async () => {
+      // Create cards up to limit (50)
+      const existingCards = Array.from({ length: 50 }, (_, i) => ({
+        title: `Existing Card ${i}`,
+        ownerId: TEST_OWNER_ID,
+        createdBy: "TestUser",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, j) => ({
+          value: `Tile ${j}`,
+          position: j,
+        })),
+        isPublished: false,
+      }));
+
+      await Card.insertMany(existingCards);
+
+      // Try to import one more unpublished card
+      const cardsToImport = [
+        {
+          title: "One Too Many",
+          createdBy: "TestUser",
+          rows: 2,
+          columns: 2,
+          tiles: Array.from({ length: 4 }, (_, i) => ({
+            value: `Tile ${i}`,
+            position: i,
+          })),
+          isPublished: false,
+        },
+      ];
+
+      const response = await request(app)
+        .post("/api/cards/import")
+        .send({ ownerId: TEST_OWNER_ID, cards: cardsToImport });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain("exceed unpublished cards limit");
+      expect(response.body.limit).toBe(50);
+      expect(response.body.current).toBe(50);
+    });
+
+    it("should prevent exceeding published cards limit", async () => {
+      // Create published cards up to limit (50)
+      const existingCards = Array.from({ length: 50 }, (_, i) => ({
+        title: `Published Card ${i}`,
+        ownerId: TEST_OWNER_ID,
+        createdBy: "TestUser",
+        rows: 2,
+        columns: 2,
+        tiles: Array.from({ length: 4 }, (_, j) => ({
+          value: `Tile ${j}`,
+          position: j,
+        })),
+        isPublished: true,
+      }));
+
+      await Card.insertMany(existingCards);
+
+      // Try to import one more published card
+      const cardsToImport = [
+        {
+          title: "One Too Many Published",
+          createdBy: "TestUser",
+          rows: 2,
+          columns: 2,
+          tiles: Array.from({ length: 4 }, (_, i) => ({
+            value: `Tile ${i}`,
+            position: i,
+          })),
+          isPublished: true,
+        },
+      ];
+
+      const response = await request(app)
+        .post("/api/cards/import")
+        .send({ ownerId: TEST_OWNER_ID, cards: cardsToImport });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain("exceed published cards limit");
+      expect(response.body.limit).toBe(50);
+      expect(response.body.current).toBe(50);
+    });
+
+    it("should preserve _id when provided for device sync", async () => {
+      const customId = "507f1f77bcf86cd799439011"; // Valid MongoDB ObjectId
+      const cardsToImport = [
+        {
+          _id: customId,
+          title: "Card with Custom ID",
+          createdBy: "TestUser",
+          rows: 2,
+          columns: 2,
+          tiles: Array.from({ length: 4 }, (_, i) => ({
+            value: `Tile ${i}`,
+            position: i,
+          })),
+          isPublished: false,
+        },
+      ];
+
+      const response = await request(app)
+        .post("/api/cards/import")
+        .send({ ownerId: TEST_OWNER_ID, cards: cardsToImport });
+
+      expect(response.status).toBe(201);
+      expect(response.body.importedCount).toBe(1);
+
+      // Verify the _id was preserved
+      const importedCard = await Card.findById(customId);
+      expect(importedCard).toBeTruthy();
+      expect(importedCard?._id.toString()).toBe(customId);
     });
   });
 });

@@ -25,7 +25,7 @@ const verifySuperAdminToken = (
   try {
     jwt.verify(token, JWT_SECRET);
     next();
-  } catch (error) {
+  } catch {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 };

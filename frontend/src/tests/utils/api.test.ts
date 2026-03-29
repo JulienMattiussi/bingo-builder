@@ -529,4 +529,634 @@ describe("API Utility", () => {
       });
     });
   });
+
+  describe("Export/Import", () => {
+    describe("exportCards", () => {
+      it("should export cards for a user", async () => {
+        const mockExportData = {
+          version: "2.0",
+          exportDate: "2024-03-29T10:00:00.000Z",
+          user: { nickname: "TestUser", ownerId: "owner123" },
+          cardCount: 2,
+          cards: [
+            {
+              _id: "card1",
+              title: "Test Card 1",
+              ownerId: "owner123",
+              rows: 2,
+              columns: 2,
+              tiles: [{ value: "Tile 1" }],
+              isPublished: false,
+              createdAt: "2024-03-29T10:00:00.000Z",
+              updatedAt: "2024-03-29T10:00:00.000Z",
+            },
+            {
+              _id: "card2",
+              title: "Test Card 2",
+              ownerId: "owner123",
+              rows: 3,
+              columns: 3,
+              tiles: [{ value: "Tile 2" }],
+              isPublished: true,
+              createdAt: "2024-03-29T10:00:00.000Z",
+              updatedAt: "2024-03-29T10:00:00.000Z",
+            },
+          ],
+          progress: {},
+        };
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockExportData,
+        });
+
+        const result = await api.exportCards("owner123");
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("/api/cards/export?ownerId=owner123"),
+        );
+        expect(result.version).toBe("2.0");
+        expect(result.cardCount).toBe(2);
+        expect(result.cards).toHaveLength(2);
+        expect(result.cards[0]._id).toBe("card1");
+      });
+
+      it("should handle errors when exporting cards", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          json: async () => ({ message: "Owner ID is required" }),
+        });
+
+        await expect(api.exportCards("")).rejects.toThrow(
+          "Owner ID is required",
+        );
+      });
+    });
+
+    describe("importCards", () => {
+      it("should import cards successfully", async () => {
+        const mockCards = [
+          {
+            _id: "imported-card-1",
+            title: "Imported Card",
+            createdBy: "owner123",
+            ownerId: "owner123",
+            rows: 2,
+            columns: 2,
+            tiles: [
+              { value: "Tile 1", position: 0 },
+              { value: "Tile 2", position: 1 },
+              { value: "Tile 3", position: 2 },
+              { value: "Tile 4", position: 3 },
+            ],
+            isPublished: false,
+            createdAt: "2024-03-29T10:00:00.000Z",
+            updatedAt: "2024-03-29T10:00:00.000Z",
+          },
+        ];
+
+        const mockResponse = {
+          message: "Successfully imported 1 cards",
+          importedCount: 1,
+          skippedCount: 0,
+          errorCount: 0,
+        };
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await api.importCards("owner123", mockCards);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("/api/cards/import"),
+          expect.objectContaining({
+            method: "POST",
+            body: JSON.stringify({
+              ownerId: "owner123",
+              cards: mockCards,
+              user: undefined,
+              progress: undefined,
+            }),
+          }),
+        );
+        expect(result.importedCount).toBe(1);
+        expect(result.skippedCount).toBe(0);
+        expect(result.errorCount).toBe(0);
+      });
+
+      it("should import cards with user data and progress", async () => {
+        const mockCards = [
+          {
+            _id: "card1",
+            title: "Card 1",
+            createdBy: "owner123",
+            ownerId: "owner123",
+            rows: 2,
+            columns: 2,
+            tiles: [
+              { value: "Tile 1", position: 0 },
+              { value: "Tile 2", position: 1 },
+              { value: "Tile 3", position: 2 },
+              { value: "Tile 4", position: 3 },
+            ],
+            isPublished: false,
+            createdAt: "2024-03-29T10:00:00.000Z",
+            updatedAt: "2024-03-29T10:00:00.000Z",
+          },
+        ];
+
+        const mockUser = { nickname: "TestUser", ownerId: "owner123" };
+        const mockProgress = { card1: [0, 1] };
+
+        const mockResponse = {
+          message: "Successfully imported 1 cards",
+          importedCount: 1,
+          skippedCount: 0,
+          errorCount: 0,
+        };
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await api.importCards(
+          "owner123",
+          mockCards,
+          mockUser,
+          mockProgress,
+        );
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("/api/cards/import"),
+          expect.objectContaining({
+            method: "POST",
+            body: JSON.stringify({
+              ownerId: "owner123",
+              cards: mockCards,
+              user: mockUser,
+              progress: mockProgress,
+            }),
+          }),
+        );
+        expect(result.importedCount).toBe(1);
+      });
+
+      it("should handle skipped cards during import", async () => {
+        const mockCards = [
+          {
+            _id: "card1",
+            title: "Card 1",
+            createdBy: "owner123",
+            ownerId: "owner123",
+            rows: 2,
+            columns: 2,
+            tiles: [
+              { value: "Tile 1", position: 0 },
+              { value: "Tile 2", position: 1 },
+              { value: "Tile 3", position: 2 },
+              { value: "Tile 4", position: 3 },
+            ],
+            isPublished: false,
+            createdAt: "2024-03-29T10:00:00.000Z",
+            updatedAt: "2024-03-29T10:00:00.000Z",
+          },
+        ];
+
+        const mockResponse = {
+          message: "Successfully imported 0 cards, skipped 1 existing",
+          importedCount: 0,
+          skippedCount: 1,
+          errorCount: 0,
+        };
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await api.importCards("owner123", mockCards);
+
+        expect(result.importedCount).toBe(0);
+        expect(result.skippedCount).toBe(1);
+      });
+
+      it("should handle errors during import", async () => {
+        const mockCards = [
+          {
+            _id: "card1",
+            title: "Card 1",
+            createdBy: "owner123",
+            ownerId: "owner123",
+            rows: 2,
+            columns: 2,
+            tiles: [
+              { value: "Tile 1", position: 0 },
+              { value: "Tile 2", position: 1 },
+              { value: "Tile 3", position: 2 },
+              { value: "Tile 4", position: 3 },
+            ],
+            isPublished: false,
+            createdAt: "2024-03-29T10:00:00.000Z",
+            updatedAt: "2024-03-29T10:00:00.000Z",
+          },
+        ];
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          json: async () => ({ message: "Import validation failed" }),
+        });
+
+        await expect(api.importCards("owner123", mockCards)).rejects.toThrow(
+          "Import validation failed",
+        );
+      });
+
+      it("should handle partial import with errors", async () => {
+        const mockCards = [
+          {
+            _id: "card1",
+            title: "Card 1",
+            createdBy: "owner123",
+            ownerId: "owner123",
+            rows: 2,
+            columns: 2,
+            tiles: [
+              { value: "Tile 1", position: 0 },
+              { value: "Tile 2", position: 1 },
+              { value: "Tile 3", position: 2 },
+              { value: "Tile 4", position: 3 },
+            ],
+            isPublished: false,
+            createdAt: "2024-03-29T10:00:00.000Z",
+            updatedAt: "2024-03-29T10:00:00.000Z",
+          },
+        ];
+
+        const mockResponse = {
+          message: "Partial import",
+          importedCount: 1,
+          skippedCount: 0,
+          errorCount: 1,
+          errors: [{ index: 1, message: "Missing required fields" }],
+        };
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await api.importCards("owner123", mockCards);
+
+        expect(result.importedCount).toBe(1);
+        expect(result.errorCount).toBe(1);
+        expect(result.errors).toHaveLength(1);
+        expect(result.errors?.[0].message).toBe("Missing required fields");
+      });
+    });
+  });
+
+  describe("Super Admin API Methods", () => {
+    describe("superAdminLogin", () => {
+      it("should successfully login with valid password", async () => {
+        const mockResponse = { token: "jwt-token-12345" };
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await api.superAdminLogin("correct-password");
+
+        expect(fetch).toHaveBeenCalledWith(
+          "/api/superadmin/login",
+          expect.objectContaining({
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ password: "correct-password" }),
+          }),
+        );
+        expect(result.token).toBe("jwt-token-12345");
+      });
+
+      it("should throw error on login failure", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({ message: "Invalid password" }),
+        });
+
+        await expect(api.superAdminLogin("wrong-password")).rejects.toThrow(
+          "Invalid password",
+        );
+      });
+
+      it("should throw default error message when server error has no message", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({}),
+        });
+
+        await expect(api.superAdminLogin("password")).rejects.toThrow(
+          "Login failed",
+        );
+      });
+    });
+
+    describe("superAdminChangePassword", () => {
+      const token = "jwt-token";
+      const currentPassword = "old-pass";
+      const newPassword = "new-pass";
+
+      it("should successfully change password with valid credentials", async () => {
+        const mockResponse = { message: "Password changed successfully" };
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await api.superAdminChangePassword(
+          token,
+          currentPassword,
+          newPassword,
+        );
+
+        expect(fetch).toHaveBeenCalledWith(
+          "/api/superadmin/change-password",
+          expect.objectContaining({
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ currentPassword, newPassword }),
+          }),
+        );
+        expect(result.message).toBe("Password changed successfully");
+      });
+
+      it("should throw error when current password is incorrect", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({ message: "Current password incorrect" }),
+        });
+
+        await expect(
+          api.superAdminChangePassword(token, "wrong", newPassword),
+        ).rejects.toThrow("Current password incorrect");
+      });
+
+      it("should throw default error message on failure without message", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({}),
+        });
+
+        await expect(
+          api.superAdminChangePassword(token, currentPassword, newPassword),
+        ).rejects.toThrow("Failed to change password");
+      });
+    });
+
+    describe("superAdminListAllCards", () => {
+      const token = "jwt-token";
+
+      it("should successfully fetch all cards", async () => {
+        const mockCards = [
+          {
+            _id: "card1",
+            title: "Admin Card 1",
+            createdBy: "user1",
+            ownerId: "user1",
+            rows: 3,
+            columns: 3,
+            tiles: Array(9)
+              .fill(null)
+              .map((_, i) => ({ value: `Tile ${i}`, position: i })),
+            isPublished: true,
+            createdAt: "2024-03-29T10:00:00.000Z",
+            updatedAt: "2024-03-29T10:00:00.000Z",
+          },
+          {
+            _id: "card2",
+            title: "Admin Card 2",
+            createdBy: "user2",
+            ownerId: "user2",
+            rows: 4,
+            columns: 4,
+            tiles: Array(16)
+              .fill(null)
+              .map((_, i) => ({ value: `Tile ${i}`, position: i })),
+            isPublished: false,
+            createdAt: "2024-03-29T11:00:00.000Z",
+            updatedAt: "2024-03-29T11:00:00.000Z",
+          },
+        ];
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockCards,
+        });
+
+        const result = await api.superAdminListAllCards(token);
+
+        expect(fetch).toHaveBeenCalledWith(
+          "/api/superadmin/cards",
+          expect.objectContaining({
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        );
+        expect(result).toHaveLength(2);
+        expect(result[0]._id).toBe("card1");
+        expect(result[1]._id).toBe("card2");
+      });
+
+      it("should throw error when unauthorized", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({ message: "Unauthorized" }),
+        });
+
+        await expect(
+          api.superAdminListAllCards("invalid-token"),
+        ).rejects.toThrow("Unauthorized");
+      });
+
+      it("should throw default error message on failure", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({}),
+        });
+
+        await expect(api.superAdminListAllCards(token)).rejects.toThrow(
+          "Failed to fetch cards",
+        );
+      });
+    });
+
+    describe("superAdminDeleteCard", () => {
+      const token = "jwt-token";
+      const cardId = "card123";
+
+      it("should successfully delete a card", async () => {
+        const mockResponse = { message: "Card deleted successfully" };
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await api.superAdminDeleteCard(token, cardId);
+
+        expect(fetch).toHaveBeenCalledWith(
+          `/api/superadmin/cards/${cardId}`,
+          expect.objectContaining({
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        );
+        expect(result.message).toBe("Card deleted successfully");
+      });
+
+      it("should throw error when card not found", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({ message: "Card not found" }),
+        });
+
+        await expect(
+          api.superAdminDeleteCard(token, "nonexistent"),
+        ).rejects.toThrow("Card not found");
+      });
+
+      it("should throw default error message on failure", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({}),
+        });
+
+        await expect(api.superAdminDeleteCard(token, cardId)).rejects.toThrow(
+          "Failed to delete card",
+        );
+      });
+    });
+
+    describe("superAdminDeleteUser", () => {
+      const token = "jwt-token";
+      const ownerId = "user123";
+
+      it("should successfully delete a user and their cards", async () => {
+        const mockResponse = {
+          message: "User and cards deleted successfully",
+          deletedCardsCount: 5,
+        };
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await api.superAdminDeleteUser(token, ownerId);
+
+        expect(fetch).toHaveBeenCalledWith(
+          `/api/superadmin/users/${ownerId}`,
+          expect.objectContaining({
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        );
+        expect(result.message).toBe("User and cards deleted successfully");
+        expect(result.deletedCardsCount).toBe(5);
+      });
+
+      it("should throw error when user not found", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({ message: "User not found" }),
+        });
+
+        await expect(
+          api.superAdminDeleteUser(token, "nonexistent"),
+        ).rejects.toThrow("User not found");
+      });
+
+      it("should throw default error message on failure", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({}),
+        });
+
+        await expect(api.superAdminDeleteUser(token, ownerId)).rejects.toThrow(
+          "Failed to delete user",
+        );
+      });
+    });
+
+    describe("superAdminGetStats", () => {
+      const token = "jwt-token";
+
+      it("should successfully fetch statistics", async () => {
+        const mockStats = {
+          totalCards: 150,
+          publishedCards: 100,
+          unpublishedCards: 50,
+          totalUsers: 75,
+        };
+
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockStats,
+        });
+
+        const result = await api.superAdminGetStats(token);
+
+        expect(fetch).toHaveBeenCalledWith(
+          "/api/superadmin/stats",
+          expect.objectContaining({
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        );
+        expect(result.totalCards).toBe(150);
+        expect(result.publishedCards).toBe(100);
+        expect(result.unpublishedCards).toBe(50);
+        expect(result.totalUsers).toBe(75);
+      });
+
+      it("should throw error when unauthorized", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({ message: "Unauthorized access" }),
+        });
+
+        await expect(api.superAdminGetStats("invalid-token")).rejects.toThrow(
+          "Unauthorized access",
+        );
+      });
+
+      it("should throw default error message on failure", async () => {
+        (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({}),
+        });
+
+        await expect(api.superAdminGetStats(token)).rejects.toThrow(
+          "Failed to fetch stats",
+        );
+      });
+    });
+  });
 });

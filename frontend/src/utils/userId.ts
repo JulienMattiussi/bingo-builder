@@ -50,4 +50,15 @@ export const userIdUtils = {
   clearUserId(): void {
     localStorage.removeItem(USER_ID_KEY);
   },
+
+  /**
+   * Restore user ID from import (for data portability)
+   * Use when importing user data from another device
+   */
+  restoreUserId(userId: string): void {
+    if (!userId || typeof userId !== "string") {
+      throw new Error("Invalid user ID");
+    }
+    localStorage.setItem(USER_ID_KEY, userId);
+  },
 };

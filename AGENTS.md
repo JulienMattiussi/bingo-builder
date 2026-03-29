@@ -135,8 +135,9 @@ make db-logs        # View MongoDB logs
 make lint          # Run ESLint on all code
 make lint-fix      # Auto-fix linting issues
 make format        # Format code with Prettier
-make check         # Run all checks (format + lint)
+make lintcheck     # Run format + lint checks only
 make fix           # Format and auto-fix everything
+make check         # Run comprehensive checks (build + lint + typecheck + coverage)
 ```
 
 **Testing**:
@@ -314,6 +315,13 @@ function processCard(card: Card): CardStatus {
 function processCard(card: any) {  // ❌ Uses 'any'
   return card.process();  // ❌ No type safety
 }
+
+// Good - Test with type assertion for invalid types
+expect(() => userIdUtils.restoreUserId(null as unknown as string)).toThrow("Invalid user ID");
+expect(() => userIdUtils.restoreUserId(123 as unknown as string)).toThrow("Invalid user ID");
+
+// Bad - Test using 'any' type
+expect(() => userIdUtils.restoreUserId(null as any)).toThrow("Invalid user ID");  // ❌ Violates no-explicit-any
 ```
 
 ### ES Modules
@@ -360,6 +368,7 @@ make lint-fix  # Auto-fix issues
 ```bash
 make format       # Format all code
 make format-check # Check if formatted
+make lintcheck    # Check format + lint
 make fix          # Format + lint-fix everything
 ```
 
@@ -371,18 +380,63 @@ make fix          # Format + lint-fix everything
 
 **Before committing code**:
 ```bash
-make check  # Run format-check + lint
+make lintcheck  # Quick check: format + lint
 # If issues found:
-make fix    # Auto-fix formatting and linting
+make fix        # Auto-fix formatting and linting
+
+# Before pushing or for comprehensive validation:
+make check      # Full check: build + lint + typecheck + coverage
 ```
 
 **Rules**:
-1. ✅ **DO**: Run `make check` before committing
+1. ✅ **DO**: Run `make lintcheck` before committing (or `make check` for comprehensive validation)
 2. ✅ **DO**: Fix all ESLint errors (not warnings)
 3. ✅ **DO**: Use `make fix` to auto-fix most issues
-4. ❌ **DON'T**: Commit code with linting errors
-5. ❌ **DON'T**: Disable ESLint rules without good reason
-6. ❌ **DON'T**: Commit unformatted code
+4. ✅ **DO**: Run `make check` before pushing to ensure everything works
+5. ❌ **DON'T**: Commit code with linting errors
+6. ❌ **DON'T**: Disable ESLint rules without good reason
+7. ❌ **DON'T**: Commit unformatted code
+
+### Code Quality Constraints for New Files
+
+**CRITICAL**: When creating new files (especially test files), ensure they comply with linting rules.
+
+**TypeScript ESLint Rules**:
+
+**`no-explicit-any`**: Never use `any` type - use `unknown` for truly unknown types
+
+```typescript
+// ❌ BAD - Violates no-explicit-any rule
+expect(() => userIdUtils.restoreUserId(null as any)).toThrow("Invalid user ID");
+expect(() => userIdUtils.restoreUserId(123 as any)).toThrow("Invalid user ID");
+
+// ✅ GOOD - Use unknown with double type assertion
+expect(() => userIdUtils.restoreUserId(null as unknown as string)).toThrow("Invalid user ID");
+expect(() => userIdUtils.restoreUserId(123 as unknown as string)).toThrow("Invalid user ID");
+```
+
+**Common Test File Requirements**:
+1. **Type Assertions**: Use `as unknown as TargetType` instead of `as any`
+2. **Mock Typing**: Define proper interfaces for mocked objects
+3. **Fetch Mocks**: Use `ReturnType<typeof vi.fn>` for typed mocks
+4. **Test Data**: Create proper interfaces for test data structures
+
+**Validation Workflow**:
+```bash
+# After creating new files:
+make lintcheck  # Verify no linting errors introduced
+make fix        # Auto-fix formatting issues if needed
+make check      # Comprehensive validation before push
+```
+
+**Rules**:
+1. ✅ **DO**: Use `unknown` type instead of `any` in type assertions
+2. ✅ **DO**: Define proper TypeScript interfaces for test data
+3. ✅ **DO**: Run `make lintcheck` immediately after creating new files
+4. ✅ **DO**: Fix linting errors before proceeding with other tasks
+5. ❌ **DON'T**: Use `any` type anywhere in code (production or tests)
+6. ❌ **DON'T**: Use `@ts-ignore` or `@ts-expect-error` to suppress errors
+7. ❌ **DON'T**: Create files that break existing linting rules
 
 ---
 
@@ -947,7 +1001,7 @@ Before submitting code, verify:
 - [ ] Used Makefile commands instead of direct npm/docker commands
 - [ ] Documentation updated in `documentation/` folder
 - [ ] All TypeScript files compile without errors
-- [ ] Code passes `make check` (formatting + linting)
+- [ ] Code passes `make lintcheck` (format + lint) or `make check` (comprehensive: build + lint + typecheck + coverage)
 - [ ] Tests added/updated and passing (`make test`)
 - [ ] Test data isolation maintained (separate database)
 - [ ] Responsive design tested on mobile viewport

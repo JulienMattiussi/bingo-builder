@@ -115,10 +115,39 @@ function Home() {
             <button
               className="success"
               onClick={() => navigate("/create")}
-              style={{ fontSize: "1rem", padding: "0.75rem 1.5rem" }}
+              style={{
+                fontSize: "1rem",
+                padding: "0.75rem 1.5rem",
+                marginBottom: "1rem",
+              }}
             >
               Create Your First Card
             </button>
+
+            <div
+              style={{
+                marginTop: "1.5rem",
+                paddingTop: "1.5rem",
+                borderTop: "1px solid #e0e0e0",
+              }}
+            >
+              <p
+                style={{
+                  color: "#7f8c8d",
+                  marginBottom: "0.5rem",
+                  fontSize: "0.9rem",
+                }}
+              >
+                Already have saved cards from another device?
+              </p>
+              <button
+                className="button-secondary"
+                onClick={() => navigate("/profile")}
+                style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}
+              >
+                📥 Import Your Data
+              </button>
+            </div>
           </div>
         </div>
       ) : (

@@ -320,6 +320,223 @@ components:
       required:
         - message
         - modifiedCount
+    ExportResponse:
+      type: object
+      properties:
+        version:
+          type: string
+          description: Export format version
+          example: "2.0"
+        exportDate:
+          type: string
+          format: date-time
+          description: When the export was generated
+          example: 2024-03-29T10:30:00.000Z
+        user:
+          type: object
+          properties:
+            nickname:
+              type: string
+              description: User's player nickname
+              example: JohnDoe
+            ownerId:
+              type: string
+              format: uuid
+              description: User's unique owner ID
+              example: 550e8400-e29b-41d4-a716-446655440000
+          required:
+            - nickname
+            - ownerId
+          description: User data for identity restoration
+        cardCount:
+          type: integer
+          minimum: 0
+          description: Number of cards in the export
+          example: 5
+        cards:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: MongoDB ObjectId (prevents duplicates on import)
+                example: 507f1f77bcf86cd799439011
+              title:
+                type: string
+              createdBy:
+                type: string
+              ownerId:
+                type: string
+                format: uuid
+              rows:
+                type: integer
+              columns:
+                type: integer
+              tiles:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tile"
+              isPublished:
+                type: boolean
+              publishedAt:
+                type: string
+                nullable: true
+                format: date-time
+              createdAt:
+                type: string
+                format: date-time
+              updatedAt:
+                type: string
+                format: date-time
+            required:
+              - _id
+              - title
+              - createdBy
+              - ownerId
+              - rows
+              - columns
+              - tiles
+              - isPublished
+              - createdAt
+              - updatedAt
+          description: Array of exported cards (with _id for de-duplication)
+        progress:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: integer
+            description: Array of checked tile indices
+          description: Card play progress (cardId -> checked tiles)
+      required:
+        - version
+        - exportDate
+        - user
+        - cardCount
+        - cards
+        - progress
+    ImportResponse:
+      type: object
+      properties:
+        importedCount:
+          type: integer
+          minimum: 0
+          description: Number of cards successfully imported/updated
+          example: 4
+        skippedCount:
+          type: integer
+          minimum: 0
+          description: Number of cards skipped (already exist with same content)
+          example: 1
+        errorCount:
+          type: integer
+          minimum: 0
+          description: Number of cards that failed to import
+          example: 1
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              index:
+                type: integer
+                minimum: 0
+                description: Index of the card that failed (0-indexed)
+                example: 2
+              message:
+                type: string
+                description: Error message
+                example: Invalid tile count
+            required:
+              - index
+              - message
+          description: Array of errors for failed cards
+      required:
+        - importedCount
+        - skippedCount
+        - errorCount
+        - errors
+    ImportRequest:
+      type: object
+      properties:
+        ownerId:
+          type: string
+          format: uuid
+          description: Current user's ID (for ownership verification)
+          example: 550e8400-e29b-41d4-a716-446655440000
+        user:
+          type: object
+          properties:
+            nickname:
+              type: string
+            ownerId:
+              type: string
+              format: uuid
+          required:
+            - ownerId
+          description: User data from export (optional)
+        cards:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: MongoDB ObjectId from export (used to avoid duplicates)
+              title:
+                type: string
+                minLength: 1
+                maxLength: 25
+              createdBy:
+                type: string
+                default: ""
+              ownerId:
+                type: string
+                format: uuid
+              rows:
+                type: integer
+                minimum: 2
+                maximum: 5
+              columns:
+                type: integer
+                minimum: 2
+                maximum: 6
+              tiles:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tile"
+                minItems: 4
+                maxItems: 30
+              isPublished:
+                type: boolean
+              publishedAt:
+                type: string
+                nullable: true
+                format: date-time
+              createdAt:
+                type: string
+                format: date-time
+              updatedAt:
+                type: string
+                format: date-time
+            required:
+              - title
+              - rows
+              - columns
+              - tiles
+          minItems: 1
+          description: Array of cards to import
+        progress:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: integer
+          description: Card play progress to restore (optional)
+      required:
+        - ownerId
+        - cards
     PeerSuccessResponse:
       type: object
       properties:
@@ -1025,6 +1242,124 @@ paths:
                 description: Time when limit resets (Unix timestamp)
               required: true
               description: Time when limit resets (Unix timestamp)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/cards/export:
+    get:
+      summary: Export user's cards
+      description: Export all cards belonging to a user as a JSON file for backup or
+        data portability purposes
+      tags:
+        - cards
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+            description: User ID to export cards for
+            example: 550e8400-e29b-41d4-a716-446655440000
+          required: true
+          description: User ID to export cards for
+          name: ownerId
+          in: query
+      responses:
+        "200":
+          description: Cards exported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportResponse"
+        "400":
+          description: Invalid request parameters or validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Rate limit exceeded
+          headers:
+            RateLimit-Limit:
+              schema:
+                type: integer
+                description: Maximum requests allowed
+              required: true
+              description: Maximum requests allowed
+            RateLimit-Remaining:
+              schema:
+                type: integer
+                description: Requests remaining
+              required: true
+              description: Requests remaining
+            RateLimit-Reset:
+              schema:
+                type: integer
+                description: Time when limit resets (Unix timestamp)
+              required: true
+              description: Time when limit resets (Unix timestamp)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/cards/import:
+    post:
+      summary: Import user's cards
+      description: Import cards from a previously exported JSON file. All cards are
+        imported as unpublished. Ownership is enforced by overriding imported
+        ownerId with current user's ID.
+      tags:
+        - cards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportRequest"
+      responses:
+        "200":
+          description: Import completed (may contain partial errors)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportResponse"
+        "400":
+          description: Invalid request parameters or validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Rate limit exceeded
+          headers:
+            RateLimit-Limit:
+              schema:
+                type: integer
+                description: Maximum requests allowed
+              required: true
+              description: Maximum requests allowed
+            RateLimit-Remaining:
+              schema:
+                type: integer
+                description: Requests remaining
+              required: true
+              description: Requests remaining
+            RateLimit-Reset:
+              schema:
+                type: integer
+                description: Time when limit resets (Unix timestamp)
+              required: true
+              description: Time when limit resets (Unix timestamp)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:

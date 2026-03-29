@@ -331,4 +331,50 @@ export const api = {
     }
     return response.json();
   },
+
+  // Export user's cards
+  async exportCards(ownerId: string): Promise<{
+    version: string;
+    exportDate: string;
+    user: { nickname: string; ownerId: string };
+    cardCount: number;
+    cards: Card[];
+    progress: Record<string, number[]>;
+  }> {
+    const response = await fetch(
+      `${API_BASE_URL}/cards/export?ownerId=${encodeURIComponent(ownerId)}`,
+    );
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to export cards");
+    }
+    return response.json();
+  },
+
+  // Import cards
+  async importCards(
+    ownerId: string,
+    cards: Card[],
+    user?: { nickname: string; ownerId: string },
+    progress?: Record<string, number[]>,
+  ): Promise<{
+    message: string;
+    importedCount: number;
+    skippedCount: number;
+    errorCount: number;
+    errors?: Array<{ index: number; message: string }>;
+  }> {
+    const response = await fetch(`${API_BASE_URL}/cards/import`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ownerId, cards, user, progress }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to import cards");
+    }
+    return response.json();
+  },
 };

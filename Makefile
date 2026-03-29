@@ -1,4 +1,4 @@
-.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db stop-test-db restart-db restart-test-db start-test-db db-logs db-status db-clean-all superadmin-reset superadmin-reset-custom build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check typecheck typecheck-backend typecheck-frontend test test-backend test-frontend test-watch test-coverage coverage clean clean-all clean-test-data dev logs deploy preview check fix setup
+.PHONY: help install install-backend install-frontend start start-backend start-frontend start-db stop-db stop-test-db restart-db restart-test-db start-test-db db-logs db-status db-clean-all superadmin-reset superadmin-reset-custom build build-backend build-frontend lint lint-backend lint-frontend lint-fix lint-fix-backend lint-fix-frontend format format-backend format-frontend format-check typecheck typecheck-backend typecheck-frontend test test-backend test-frontend test-watch test-coverage coverage clean clean-all clean-test-data dev logs deploy preview check lintcheck fix setup
 
 help: ## Display available commands
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -206,8 +206,25 @@ preview: build-frontend ## Preview production build locally
 
 # Development workflow
 
-check: format-check lint ## Run all checks (format + lint)
-	@echo "✅ All checks passed!"
+check: ## Run comprehensive checks (build, lint, typecheck, coverage)
+	@echo "🔍 Running comprehensive checks..."
+	@echo ""
+	@echo "📦 Step 1/4: Building..."
+	$(MAKE) build
+	@echo ""
+	@echo "🧹 Step 2/4: Linting..."
+	$(MAKE) lint
+	@echo ""
+	@echo "🔤 Step 3/4: Type checking..."
+	$(MAKE) typecheck
+	@echo ""
+	@echo "📊 Step 4/4: Running tests with coverage..."
+	$(MAKE) coverage
+	@echo ""
+	@echo "✅ All comprehensive checks passed!"
+
+lintcheck: format-check lint ## Run format and lint checks only
+	@echo "✅ Format and lint checks passed!"
 
 fix: format lint-fix ## Format and auto-fix all code
 	@echo "✅ Code formatted and linted!"

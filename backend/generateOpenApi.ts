@@ -16,6 +16,9 @@ import {
   OwnershipSchema,
   DeleteByCreatorSchema,
   UpdateCreatorSchema,
+  ExportResponseSchema,
+  ImportRequestSchema,
+  ImportResponseSchema,
 } from "./schemas/card.js";
 import {
   PeerRegistrationSchema,
@@ -404,6 +407,69 @@ registry.registerPath({
     },
     400: errorResponses[400],
     429: errorResponses[429],
+  },
+});
+
+// GET /api/cards/export - Export user's cards
+registry.registerPath({
+  method: "get",
+  path: "/api/cards/export",
+  summary: "Export user's cards",
+  description:
+    "Export all cards belonging to a user as a JSON file for backup or data portability purposes",
+  tags: ["cards"],
+  request: {
+    query: z.object({
+      ownerId: z.string().uuid().openapi({
+        description: "User ID to export cards for",
+        example: "550e8400-e29b-41d4-a716-446655440000",
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Cards exported successfully",
+      content: {
+        "application/json": {
+          schema: ExportResponseSchema,
+        },
+      },
+    },
+    400: errorResponses[400],
+    429: errorResponses[429],
+    500: errorResponses[500],
+  },
+});
+
+// POST /api/cards/import - Import user's cards
+registry.registerPath({
+  method: "post",
+  path: "/api/cards/import",
+  summary: "Import user's cards",
+  description:
+    "Import cards from a previously exported JSON file. All cards are imported as unpublished. Ownership is enforced by overriding imported ownerId with current user's ID.",
+  tags: ["cards"],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: ImportRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Import completed (may contain partial errors)",
+      content: {
+        "application/json": {
+          schema: ImportResponseSchema,
+        },
+      },
+    },
+    400: errorResponses[400],
+    429: errorResponses[429],
+    500: errorResponses[500],
   },
 });
 

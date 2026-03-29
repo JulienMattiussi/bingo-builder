@@ -57,6 +57,41 @@ router.get("/stats/counts", listOperationsLimiter, async (_req, res) => {
   }
 });
 
+// Export user's cards (MUST be before /:id route to avoid matching "export" as an ID)
+router.get("/export", listOperationsLimiter, async (req, res) => {
+  try {
+    const { ownerId } = req.query;
+
+    if (!ownerId || typeof ownerId !== "string") {
+      return res.status(400).json({ message: "Owner ID is required" });
+    }
+
+    // Get all cards owned by this user
+    const cards = await Card.find({ ownerId: ownerId.trim() }).sort({
+      createdAt: -1,
+    });
+
+    // Include _id for de-duplication on import
+    const exportData = cards.map((card) => card.toObject());
+
+    // Return export data with metadata
+    // Note: User nickname comes from frontend, backend doesn't store it
+    res.json({
+      version: "2.0",
+      exportDate: new Date().toISOString(),
+      user: {
+        ownerId: ownerId.trim(),
+        nickname: "", // Frontend will fill this in
+      },
+      cardCount: cards.length,
+      cards: exportData,
+      progress: {}, // Frontend will fill this in
+    });
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+});
+
 // Get a single card by ID
 router.get("/:id", async (req, res) => {
   try {
@@ -361,6 +396,151 @@ router.post("/update-creator", writeOperationsLimiter, async (req, res) => {
         errors: error.issues,
       });
     }
+    res.status(500).json({ message: (error as Error).message });
+  }
+});
+
+// Import user's cards
+router.post("/import", writeOperationsLimiter, async (req, res) => {
+  try {
+    const { cards, ownerId } = req.body;
+
+    if (!ownerId) {
+      return res.status(400).json({ message: "Owner ID is required" });
+    }
+
+    if (!Array.isArray(cards) || cards.length === 0) {
+      return res.status(400).json({ message: "No cards to import" });
+    }
+
+    // Count new cards only (cards without _id or with _id that doesn't exist)
+    const existingIds = cards
+      .filter((c) => c._id)
+      .map((c) => c._id)
+      .filter((id) => id);
+    const existingCards = await Card.find({
+      _id: { $in: existingIds },
+      ownerId,
+    });
+    const existingCardIds = new Set(existingCards.map((c) => c._id.toString()));
+
+    const newCards = cards.filter((c) => !c._id || !existingCardIds.has(c._id));
+    const unpublishedToImport = newCards.filter((c) => !c.isPublished).length;
+    const publishedToImport = newCards.filter((c) => c.isPublished).length;
+
+    // Check unpublished card limit (only count new cards)
+    const currentUnpublishedCount = await Card.countDocuments({
+      ownerId,
+      isPublished: false,
+    });
+    const maxUnpublished = config.get("limits.maxUnpublishedCards");
+
+    if (currentUnpublishedCount + unpublishedToImport > maxUnpublished) {
+      return res.status(400).json({
+        message: `Import would exceed unpublished cards limit. You have ${currentUnpublishedCount} unpublished cards, trying to import ${unpublishedToImport} more. Maximum is ${maxUnpublished}.`,
+        limit: maxUnpublished,
+        current: currentUnpublishedCount,
+        importing: unpublishedToImport,
+      });
+    }
+
+    // Check published card limit (only count new cards)
+    const currentPublishedCount = await Card.countDocuments({
+      ownerId,
+      isPublished: true,
+    });
+    const maxPublished = config.get("limits.maxPublishedCards");
+
+    if (currentPublishedCount + publishedToImport > maxPublished) {
+      return res.status(400).json({
+        message: `Import would exceed published cards limit. You have ${currentPublishedCount} published cards, trying to import ${publishedToImport} more. Maximum is ${maxPublished}.`,
+        limit: maxPublished,
+        current: currentPublishedCount,
+        importing: publishedToImport,
+      });
+    }
+
+    // Import/update cards
+    const importedCards = [];
+    const skippedCards = [];
+    const errors = [];
+
+    for (let i = 0; i < cards.length; i++) {
+      try {
+        const cardData = cards[i];
+
+        // Validate basic structure
+        if (
+          !cardData.title ||
+          !cardData.rows ||
+          !cardData.columns ||
+          !cardData.tiles
+        ) {
+          errors.push({
+            index: i,
+            message: "Missing required fields",
+          });
+          continue;
+        }
+
+        // Check if card already exists with this _id
+        if (cardData._id) {
+          const existingCard = await Card.findOne({
+            _id: cardData._id,
+            ownerId,
+          });
+
+          if (existingCard) {
+            // Card already exists - skip it (already imported)
+            skippedCards.push(cardData._id);
+            continue;
+          }
+        }
+
+        // Create new card (with or without preserving _id)
+        const newCardData: {
+          _id?: string;
+          title: string;
+          createdBy: string;
+          ownerId: string;
+          rows: number;
+          columns: number;
+          tiles: Array<{ value: string }>;
+          isPublished: boolean;
+        } = {
+          title: cardData.title,
+          createdBy: cardData.createdBy || "",
+          ownerId: ownerId, // Use current user's ID, not the imported one
+          rows: cardData.rows,
+          columns: cardData.columns,
+          tiles: cardData.tiles,
+          isPublished: cardData.isPublished || false,
+        };
+
+        // Preserve _id if provided (for device sync)
+        if (cardData._id) {
+          newCardData._id = cardData._id;
+        }
+
+        const newCard = new Card(newCardData);
+        const savedCard = await newCard.save();
+        importedCards.push(savedCard._id);
+      } catch (err) {
+        errors.push({
+          index: i,
+          message: (err as Error).message,
+        });
+      }
+    }
+
+    res.status(201).json({
+      message: `Successfully imported ${importedCards.length} cards, skipped ${skippedCards.length} existing`,
+      importedCount: importedCards.length,
+      skippedCount: skippedCards.length,
+      errorCount: errors.length,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (error) {
     res.status(500).json({ message: (error as Error).message });
   }
 });
