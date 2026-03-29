@@ -57,14 +57,14 @@ export const sortCardsByPriority = (
     // Priority 1: Uncompleted cards come before completed cards
     const aCompleted = aProgress.completed;
     const bCompleted = bProgress.completed;
-    
+
     if (aCompleted && !bCompleted) return 1; // a is completed, push to end
     if (!aCompleted && bCompleted) return -1; // b is completed, push to end
-    
+
     // If both are completed or both are uncompleted, sort by checked tiles count
     const aCheckedCount = getCheckedTilesCount(a._id);
     const bCheckedCount = getCheckedTilesCount(b._id);
-    
+
     // Sort by checked tiles descending (most checked first)
     return bCheckedCount - aCheckedCount;
   });

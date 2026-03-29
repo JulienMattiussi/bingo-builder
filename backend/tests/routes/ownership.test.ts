@@ -42,7 +42,8 @@ describe("Card Ownership Verification", () => {
         .expect(201);
 
       expect(response.body).toHaveProperty("_id");
-      expect(response.body.ownerId).toBe(validUserId1);
+      expect(response.body.isOwner).toBe(true);
+      expect(response.body.ownerId).toBeUndefined(); // ownerId should not be exposed
       expect(response.body.createdBy).toBe("TestUser");
     });
 

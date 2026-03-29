@@ -4,8 +4,9 @@ import request from "supertest";
 import cardRoutes from "../../routes/cards.js";
 import Card from "../../models/Card.js";
 
-// Test user ID for ownership
+// Test user IDs for ownership
 const TEST_OWNER_ID = "550e8400-e29b-41d4-a716-446655440000";
+const DIFFERENT_OWNER_ID = "660e8400-e29b-41d4-a716-446655440111";
 
 const app = express();
 app.use(express.json());
@@ -181,6 +182,7 @@ describe("Card Routes", () => {
       const updateData = {
         title: "Updated Title",
         createdBy: "user1",
+        ownerId: TEST_OWNER_ID,
       };
 
       const response = await request(app)
@@ -206,7 +208,7 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .put(`/api/cards/${card._id}`)
-        .send({ title: "New Title", createdBy: "user1" });
+        .send({ title: "New Title", createdBy: "user1", ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(200);
       expect(response.body.title).toBe("New Title");
@@ -238,6 +240,7 @@ describe("Card Routes", () => {
             position: i,
           })),
           createdBy: "user1",
+          ownerId: TEST_OWNER_ID,
         });
 
       expect(response.status).toBe(200);
@@ -250,7 +253,7 @@ describe("Card Routes", () => {
       const fakeId = "507f1f77bcf86cd799439011";
       const response = await request(app)
         .put(`/api/cards/${fakeId}`)
-        .send({ title: "Test" });
+        .send({ title: "Test", ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(404);
     });
@@ -270,7 +273,7 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .put(`/api/cards/${card._id}`)
-        .send({ title: "New Title" });
+        .send({ title: "New Title", ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(403);
       expect(response.body.message).toBe("Cannot edit a published card");
@@ -291,7 +294,7 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .put(`/api/cards/${card._id}`)
-        .send({ title: "Hacked", createdBy: "user2" });
+        .send({ title: "Hacked", createdBy: "user2", ownerId: DIFFERENT_OWNER_ID });
 
       expect(response.status).toBe(403);
       expect(response.body.message).toBe("You are not the owner of this card");
@@ -316,6 +319,7 @@ describe("Card Routes", () => {
             value: `Tile ${i}`,
             position: i,
           })),
+          ownerId: TEST_OWNER_ID,
         });
 
       expect(response.status).toBe(400);
@@ -340,7 +344,7 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .post(`/api/cards/${card._id}/publish`)
-        .send({ createdBy: "user1" });
+        .send({ createdBy: "user1", ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(200);
       expect(response.body.isPublished).toBe(true);
@@ -349,7 +353,9 @@ describe("Card Routes", () => {
 
     it("should return 404 for non-existent card", async () => {
       const fakeId = "507f1f77bcf86cd799439011";
-      const response = await request(app).post(`/api/cards/${fakeId}/publish`);
+      const response = await request(app)
+        .post(`/api/cards/${fakeId}/publish`)
+        .send({ ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(404);
     });
@@ -367,9 +373,9 @@ describe("Card Routes", () => {
         isPublished: true,
       });
 
-      const response = await request(app).post(
-        `/api/cards/${card._id}/publish`,
-      );
+      const response = await request(app)
+        .post(`/api/cards/${card._id}/publish`)
+        .send({ ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(400);
       expect(response.body.message).toBe("Card is already published");
@@ -390,7 +396,7 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .post(`/api/cards/${card._id}/publish`)
-        .send({ createdBy: "user2" });
+        .send({ createdBy: "user2", ownerId: DIFFERENT_OWNER_ID });
 
       expect(response.status).toBe(403);
       expect(response.body.message).toBe(
@@ -412,9 +418,9 @@ describe("Card Routes", () => {
         ],
       });
 
-      const response = await request(app).post(
-        `/api/cards/${card._id}/publish`,
-      );
+      const response = await request(app)
+        .post(`/api/cards/${card._id}/publish`)
+        .send({ ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(400);
       expect(response.body.message).toContain("Cannot publish incomplete card");
@@ -439,7 +445,7 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .post(`/api/cards/${card._id}/unpublish`)
-        .send({ createdBy: "user1" });
+        .send({ createdBy: "user1", ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(200);
       expect(response.body.isPublished).toBe(false);
@@ -458,9 +464,9 @@ describe("Card Routes", () => {
         })),
       });
 
-      const response = await request(app).post(
-        `/api/cards/${card._id}/unpublish`,
-      );
+      const response = await request(app)
+        .post(`/api/cards/${card._id}/unpublish`)
+        .send({ ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(400);
       expect(response.body.message).toBe("Card is not published");
@@ -482,7 +488,7 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .post(`/api/cards/${card._id}/unpublish`)
-        .send({ createdBy: "user2" });
+        .send({ createdBy: "user2", ownerId: DIFFERENT_OWNER_ID });
 
       expect(response.status).toBe(403);
     });
@@ -504,7 +510,7 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .delete(`/api/cards/${card._id}`)
-        .query({ createdBy: "user1" });
+        .query({ createdBy: "user1", ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(200);
       expect(response.body.message).toBe("Card deleted successfully");
@@ -563,7 +569,7 @@ describe("Card Routes", () => {
 
   describe("POST /api/cards/delete-by-creator", () => {
     it("should delete all cards by creator", async () => {
-      // Create multiple cards by same creator
+      // Create multiple cards with same owner ID
       await Card.create({
         title: "Card 1",
         ownerId: TEST_OWNER_ID,
@@ -588,9 +594,10 @@ describe("Card Routes", () => {
         })),
       });
 
+      // Card with different owner ID
       await Card.create({
         title: "Card 3",
-        ownerId: TEST_OWNER_ID,
+        ownerId: DIFFERENT_OWNER_ID,
         createdBy: "user2",
         rows: 2,
         columns: 2,
@@ -602,13 +609,13 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .post("/api/cards/delete-by-creator")
-        .send({ createdBy: "user1" });
+        .send({ ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(200);
       expect(response.body.deletedCount).toBe(2);
       expect(response.body.message).toBe("Successfully deleted 2 card(s)");
 
-      // Verify only user1's cards were deleted
+      // Verify only TEST_OWNER_ID's cards were deleted
       const remainingCards = await Card.find({});
       expect(remainingCards).toHaveLength(1);
       expect(remainingCards[0].createdBy).toBe("user2");
@@ -617,7 +624,7 @@ describe("Card Routes", () => {
     it("should return 0 when no cards match creator", async () => {
       const response = await request(app)
         .post("/api/cards/delete-by-creator")
-        .send({ createdBy: "nonexistent" });
+        .send({ createdBy: "nonexistent", ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(200);
       expect(response.body.deletedCount).toBe(0);
@@ -626,10 +633,10 @@ describe("Card Routes", () => {
     it("should validate required createdBy field", async () => {
       const response = await request(app)
         .post("/api/cards/delete-by-creator")
-        .send({});
+        .send({}); // Send empty body to test validation
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toBe("Validation failed");
+      expect(response.body.message).toBe("Owner ID is required");
     });
   });
 
@@ -674,7 +681,7 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .post("/api/cards/update-creator")
-        .send({ oldName: "oldName", newName: "newName" });
+        .send({ oldName: "oldName", newName: "newName", ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(200);
       expect(response.body.modifiedCount).toBe(2);
@@ -691,7 +698,7 @@ describe("Card Routes", () => {
     it("should return 0 when no cards match old name", async () => {
       const response = await request(app)
         .post("/api/cards/update-creator")
-        .send({ oldName: "nonexistent", newName: "newName" });
+        .send({ oldName: "nonexistent", newName: "newName", ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(200);
       expect(response.body.modifiedCount).toBe(0);
@@ -721,7 +728,7 @@ describe("Card Routes", () => {
 
       const response = await request(app)
         .post("/api/cards/update-creator")
-        .send({ oldName: " oldUser ", newName: " newUser " });
+        .send({ oldName: " oldUser ", newName: " newUser ", ownerId: TEST_OWNER_ID });
 
       expect(response.status).toBe(200);
 

@@ -9,14 +9,14 @@ import { Card } from "../../types/models";
 // Helper to create a test card
 const createCard = (
   id: string,
-  ownerId: string,
   isPublished: boolean,
   tiles: string[],
+  isOwner = false,
 ): Card => ({
   _id: id,
   title: `Card ${id}`,
   createdBy: "Test User",
-  ownerId,
+  isOwner,
   isPublished,
   rows: 3,
   columns: 3,
@@ -30,12 +30,22 @@ const createCard = (
 
 describe("getCompletionPercentage", () => {
   it("should return 0 for card with no filled tiles", () => {
-    const card = createCard("1", "user1", false, ["", "", "", "", "", "", "", "", ""]);
+    const card = createCard("1", false, [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+    ]);
     expect(getCompletionPercentage(card)).toBe(0);
   });
 
   it("should return 1 for card with all filled tiles", () => {
-    const card = createCard("1", "user1", false, [
+    const card = createCard("1", false, [
       "A",
       "B",
       "C",
@@ -50,7 +60,7 @@ describe("getCompletionPercentage", () => {
   });
 
   it("should return 0.5 for card with half filled tiles", () => {
-    const card = createCard("1", "user1", false, [
+    const card = createCard("1", false, [
       "A",
       "B",
       "",
@@ -65,7 +75,7 @@ describe("getCompletionPercentage", () => {
   });
 
   it("should not count tiles with only whitespace as filled", () => {
-    const card = createCard("1", "user1", false, [
+    const card = createCard("1", false, [
       "A",
       "   ",
       "\t",
@@ -80,7 +90,7 @@ describe("getCompletionPercentage", () => {
   });
 
   it("should handle different grid sizes", () => {
-    const card = createCard("1", "user1", false, ["A", "B", "", "D"]);
+    const card = createCard("1", false, ["A", "B", "", "D"]);
     card.rows = 2;
     card.columns = 2;
     expect(getCompletionPercentage(card)).toBe(0.75);
@@ -89,7 +99,6 @@ describe("getCompletionPercentage", () => {
 
 describe("sortCardsByPriority", () => {
   const currentUserId = "user1";
-  const otherUserId = "user2";
 
   // Mock getCardProgress function with localStorage
   const mockProgressWithStorage = (
@@ -118,9 +127,39 @@ describe("sortCardsByPriority", () => {
   describe("Uncompleted vs Completed cards", () => {
     it("should prioritize uncompleted cards over completed cards", () => {
       const cards = [
-        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, true, ["A", "B", "C", "D", "", "", "", "", ""]),
-        createCard("3", currentUserId, true, ["A", "B", "C", "D", "E", "", "", "", ""]),
+        createCard("1", true, [
+          "A",
+          "B",
+          "C",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("2", true, [
+          "A",
+          "B",
+          "C",
+          "D",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("3", true, [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "",
+          "",
+          "",
+          "",
+        ]),
       ];
 
       const progressMap = {
@@ -151,9 +190,39 @@ describe("sortCardsByPriority", () => {
   describe("Sorting by checked tiles count", () => {
     it("should sort uncompleted cards by checked tiles descending", () => {
       const cards = [
-        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, true, ["A", "B", "C", "D", "", "", "", "", ""]),
-        createCard("3", currentUserId, true, ["A", "", "", "", "", "", "", "", ""]),
+        createCard("1", true, [
+          "A",
+          "B",
+          "C",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("2", true, [
+          "A",
+          "B",
+          "C",
+          "D",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("3", true, [
+          "A",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
       ];
 
       const progressMap = {
@@ -181,9 +250,39 @@ describe("sortCardsByPriority", () => {
 
     it("should sort completed cards by checked tiles descending", () => {
       const cards = [
-        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, true, ["A", "B", "C", "D", "", "", "", "", ""]),
-        createCard("3", currentUserId, true, ["A", "", "", "", "", "", "", "", ""]),
+        createCard("1", true, [
+          "A",
+          "B",
+          "C",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("2", true, [
+          "A",
+          "B",
+          "C",
+          "D",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("3", true, [
+          "A",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
       ];
 
       const progressMap = {
@@ -211,8 +310,28 @@ describe("sortCardsByPriority", () => {
 
     it("should handle cards with no checked tiles", () => {
       const cards = [
-        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, true, ["A", "B", "C", "D", "", "", "", "", ""]),
+        createCard("1", true, [
+          "A",
+          "B",
+          "C",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("2", true, [
+          "A",
+          "B",
+          "C",
+          "D",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
       ];
 
       const progressMap = {
@@ -239,10 +358,50 @@ describe("sortCardsByPriority", () => {
   describe("Mixed scenarios", () => {
     it("should correctly sort mixed completed and uncompleted cards", () => {
       const cards = [
-        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", otherUserId, true, ["A", "B", "C", "D", "", "", "", "", ""]),
-        createCard("3", currentUserId, true, ["A", "", "", "", "", "", "", "", ""]),
-        createCard("4", otherUserId, true, ["A", "B", "", "", "", "", "", "", ""]),
+        createCard("1", true, [
+          "A",
+          "B",
+          "C",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("2", true, [
+          "A",
+          "B",
+          "C",
+          "D",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("3", true, [
+          "A",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("4", true, [
+          "A",
+          "B",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
       ];
 
       const progressMap = {
@@ -277,8 +436,28 @@ describe("sortCardsByPriority", () => {
   describe("Edge cases", () => {
     it("should not mutate the original array", () => {
       const cards = [
-        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, false, ["A", "B", "C", "", "", "", "", "", ""]),
+        createCard("1", true, [
+          "A",
+          "B",
+          "C",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
+        createCard("2", false, [
+          "A",
+          "B",
+          "C",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
       ];
 
       const originalOrder = cards.map((c) => c._id);
@@ -309,7 +488,17 @@ describe("sortCardsByPriority", () => {
 
     it("should handle single card", () => {
       const cards = [
-        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
+        createCard("1", true, [
+          "A",
+          "B",
+          "C",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]),
       ];
 
       const progressMap = {

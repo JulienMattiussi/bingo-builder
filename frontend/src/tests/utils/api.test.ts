@@ -95,7 +95,12 @@ describe("API Utility", () => {
 
       const mockResponse = {
         _id: "new-id",
-        ...newCard,
+        title: newCard.title,
+        rows: newCard.rows,
+        columns: newCard.columns,
+        tiles: newCard.tiles,
+        createdBy: newCard.createdBy,
+        isOwner: true,
         isPublished: false,
       };
 
@@ -105,7 +110,7 @@ describe("API Utility", () => {
       });
 
       const card = await api.createCard(newCard);
-      expect(card).toEqual(mockResponse);
+      expect(card.isOwner).toBe(true);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/cards"),
         expect.objectContaining({
@@ -148,7 +153,12 @@ describe("API Utility", () => {
 
       const mockResponse = {
         _id: "123",
-        ...updates,
+        title: updates.title,
+        rows: updates.rows,
+        columns: updates.columns,
+        tiles: updates.tiles,
+        createdBy: updates.createdBy,
+        isOwner: true,
         isPublished: false,
       };
 

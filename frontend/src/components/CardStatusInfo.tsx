@@ -8,18 +8,19 @@ interface CardStatusInfoProps {
 function CardStatusInfo({ card, isOwner }: CardStatusInfoProps) {
   if (card.isPublished) {
     return (
-      <p className="status-text">
-        ✓ Published
-        {card.createdAt &&
-          ` on ${new Date(card.createdAt).toLocaleDateString()}`}
+      <div>
+        <p className="status-text">
+          ✓ Published
+          {card.createdAt &&
+            ` on ${new Date(card.createdAt).toLocaleDateString()}`}
+        </p>
         {card.createdBy && (
-          <span>
-            {" • Created by "}
-            {card.createdBy}
+          <p className="status-text">
+            Created by {card.createdBy}
             {isOwner && " (you)"}
-          </span>
+          </p>
         )}
-      </p>
+      </div>
     );
   }
 

@@ -122,6 +122,38 @@ export const StatusSchema = z
   .openapi("Status");
 
 /**
+ * Card Statistics Response Schema
+ */
+export const CardStatsSchema = z
+  .object({
+    published: z.number().int().openapi({
+      description: "Number of published cards",
+      example: 10,
+    }),
+    unpublished: z.number().int().openapi({
+      description: "Number of unpublished cards",
+      example: 5,
+    }),
+    maxPublished: z.number().int().openapi({
+      description: "Maximum allowed published cards",
+      example: 50,
+    }),
+    maxUnpublished: z.number().int().openapi({
+      description: "Maximum allowed unpublished cards",
+      example: 50,
+    }),
+    canCreate: z.boolean().openapi({
+      description: "Whether user can create new cards",
+      example: true,
+    }),
+    canPublish: z.boolean().openapi({
+      description: "Whether user can publish more cards",
+      example: true,
+    }),
+  })
+  .openapi("CardStats");
+
+/**
  * MongoDB ObjectId Parameter Schema
  */
 export const MongoIdParamSchema = z
@@ -194,6 +226,23 @@ export const CreatorQuerySchema = z
       in: "query",
     },
     description: "Creator name for ownership verification",
+  });
+
+/**
+ * User ID Query Parameter
+ * Used to determine card ownership (isOwner flag in responses)
+ */
+export const UserIdQuerySchema = z
+  .string()
+  .uuid()
+  .optional()
+  .openapi({
+    param: {
+      name: "userId",
+      in: "query",
+    },
+    description: "User ID for ownership verification (UUID v4)",
+    example: "550e8400-e29b-41d4-a716-446655440000",
   });
 
 // Export TypeScript types

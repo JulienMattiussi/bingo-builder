@@ -31,11 +31,13 @@ import {
   UpdateResponseSchema,
   HealthCheckSchema,
   StatusSchema,
+  CardStatsSchema,
   MongoIdParamSchema,
   CardIdParamSchema,
   PeerIdParamSchema,
   ExcludePeerIdQuerySchema,
   CreatorQuerySchema,
+  UserIdQuerySchema,
 } from "./schemas/common.js";
 
 // Get __dirname equivalent in ES modules
@@ -121,6 +123,11 @@ registry.registerPath({
   description:
     "Retrieve all bingo cards sorted by creation date (newest first). Rate limited to prevent scraping.",
   tags: ["cards"],
+  request: {
+    query: z.object({
+      userId: UserIdQuerySchema,
+    }),
+  },
   responses: {
     200: {
       description: "Successful response",
@@ -166,6 +173,28 @@ registry.registerPath({
   },
 });
 
+// GET /api/cards/stats/counts - Get card statistics
+registry.registerPath({
+  method: "get",
+  path: "/api/cards/stats/counts",
+  summary: "Get card statistics",
+  description:
+    "Retrieve counts of published and unpublished cards, along with system limits. Rate limited to prevent abuse.",
+  tags: ["cards"],
+  responses: {
+    200: {
+      description: "Successful response",
+      content: {
+        "application/json": {
+          schema: CardStatsSchema,
+        },
+      },
+    },
+    429: errorResponses[429],
+    500: errorResponses[500],
+  },
+});
+
 // GET /api/cards/{id} - Get single card
 registry.registerPath({
   method: "get",
@@ -175,6 +204,9 @@ registry.registerPath({
   tags: ["cards"],
   request: {
     params: z.object({ id: MongoIdParamSchema }),
+    query: z.object({
+      userId: UserIdQuerySchema,
+    }),
   },
   responses: {
     200: {

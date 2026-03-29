@@ -7,7 +7,8 @@ export interface Card {
   _id: string;
   title: string;
   createdBy: string;
-  ownerId: string; // Secret user ID for ownership verification
+  isOwner?: boolean; // Computed field: true if current user owns this card
+  ownerId?: string; // Only present in admin endpoints for privileged operations
   rows: number;
   columns: number;
   tiles: Tile[];

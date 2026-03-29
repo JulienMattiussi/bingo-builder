@@ -16,10 +16,21 @@ import {
 const router = express.Router();
 
 // Get all cards (with rate limiting to prevent scraping)
-router.get("/", listOperationsLimiter, async (_req, res) => {
+router.get("/", listOperationsLimiter, async (req, res) => {
   try {
     const cards = await Card.find().sort({ createdAt: -1 });
-    res.json(cards);
+    const userId = req.query.userId as string | undefined;
+
+    // Transform cards to exclude ownerId and add isOwner flag
+    const transformedCards = cards.map((card) => {
+      const cardObj = card.toObject();
+      const isOwner = userId ? cardObj.ownerId === userId : false;
+      // Remove ownerId from response for security using destructuring
+      const { ownerId: _, ...cardWithoutOwnerId } = cardObj;
+      return { ...cardWithoutOwnerId, isOwner };
+    });
+
+    res.json(transformedCards);
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
   }
@@ -53,7 +64,14 @@ router.get("/:id", async (req, res) => {
     if (!card) {
       return res.status(404).json({ message: "Card not found" });
     }
-    res.json(card);
+
+    const userId = req.query.userId as string | undefined;
+    const cardObj = card.toObject();
+    const isOwner = userId ? cardObj.ownerId === userId : false;
+    // Remove ownerId from response for security using destructuring
+    const { ownerId: _, ...cardWithoutOwnerId } = cardObj;
+
+    res.json({ ...cardWithoutOwnerId, isOwner });
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
   }
@@ -87,7 +105,10 @@ router.post("/", writeOperationsLimiter, async (req, res) => {
     });
 
     const newCard = await card.save();
-    res.status(201).json(newCard);
+    const cardObj = newCard.toObject();
+    // Remove ownerId from response for security using destructuring
+    const { ownerId: _, ...cardWithoutOwnerId } = cardObj;
+    res.status(201).json({ ...cardWithoutOwnerId, isOwner: true });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -138,7 +159,10 @@ router.put("/:id", writeOperationsLimiter, async (req, res) => {
     }
 
     const updatedCard = await card.save();
-    res.json(updatedCard);
+    const cardObj = updatedCard.toObject();
+    // Remove ownerId from response for security using destructuring
+    const { ownerId: _, ...cardWithoutOwnerId } = cardObj;
+    res.json({ ...cardWithoutOwnerId, isOwner: true });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -196,7 +220,10 @@ router.post("/:id/publish", writeOperationsLimiter, async (req, res) => {
     card.isPublished = true;
     card.publishedAt = new Date();
     const publishedCard = await card.save();
-    res.json(publishedCard);
+    const cardObj = publishedCard.toObject();
+    // Remove ownerId from response for security using destructuring
+    const { ownerId: _, ...cardWithoutOwnerId } = cardObj;
+    res.json({ ...cardWithoutOwnerId, isOwner: true });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -233,7 +260,10 @@ router.post("/:id/unpublish", writeOperationsLimiter, async (req, res) => {
     card.isPublished = false;
     card.publishedAt = undefined;
     const unpublishedCard = await card.save();
-    res.json(unpublishedCard);
+    const cardObj = unpublishedCard.toObject();
+    // Remove ownerId from response for security using destructuring
+    const { ownerId: _, ...cardWithoutOwnerId } = cardObj;
+    res.json({ ...cardWithoutOwnerId, isOwner: true });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({

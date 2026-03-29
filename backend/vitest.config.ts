@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    exclude: ["node_modules/**", "dist/**"], // Exclude dist from test discovery
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],

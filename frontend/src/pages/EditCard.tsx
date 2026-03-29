@@ -51,8 +51,7 @@ function EditCard() {
       }
 
       // Check if current player is the owner
-      const currentUserId = userIdUtils.getUserId();
-      if (data.ownerId && data.ownerId !== currentUserId) {
+      if (data.isOwner === false) {
         setError(
           "You are not the owner of this card. Only the owner can edit it.",
         );

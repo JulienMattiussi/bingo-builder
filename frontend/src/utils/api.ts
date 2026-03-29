@@ -1,12 +1,17 @@
 import { Card } from "../types/models";
+import { userIdUtils } from "./userId";
 
 const API_BASE_URL = "/api";
 
-// Card data for create/update operations (omits database-generated fields)
-type CardMutationData = Omit<
-  Card,
-  "_id" | "isPublished" | "publishedAt" | "createdAt" | "updatedAt"
->;
+// Card data for create/update operations (includes ownerId for authorization)
+interface CardMutationData {
+  title: string;
+  createdBy: string;
+  ownerId: string; // Required for authorization on backend
+  rows: number;
+  columns: number;
+  tiles: { value: string; position: number }[];
+}
 
 interface CardStats {
   published: number;
@@ -20,7 +25,11 @@ interface CardStats {
 export const api = {
   // Get all cards
   async getCards(): Promise<Card[]> {
-    const response = await fetch(`${API_BASE_URL}/cards`);
+    const userId = userIdUtils.getExistingUserId();
+    const url = userId
+      ? `${API_BASE_URL}/cards?userId=${encodeURIComponent(userId)}`
+      : `${API_BASE_URL}/cards`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch cards");
     return response.json();
   },
@@ -34,7 +43,11 @@ export const api = {
 
   // Get a single card
   async getCard(id: string): Promise<Card> {
-    const response = await fetch(`${API_BASE_URL}/cards/${id}`);
+    const userId = userIdUtils.getExistingUserId();
+    const url = userId
+      ? `${API_BASE_URL}/cards/${id}?userId=${encodeURIComponent(userId)}`
+      : `${API_BASE_URL}/cards/${id}`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch card");
     return response.json();
   },

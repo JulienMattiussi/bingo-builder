@@ -28,14 +28,19 @@ function Home() {
       setLoading(true);
       const data = await api.getCards();
       const currentUserId = userIdUtils.getUserId();
-      
+
       // Filter out unpublished cards that don't belong to the current user
+      // Backend sets isOwner based on userId query param
       const visibleCards = data.filter(
-        (card) => card.isPublished || card.ownerId === currentUserId,
+        (card) => card.isPublished || card.isOwner,
       );
-      
+
       // Sort cards by priority
-      const sortedCards = sortCardsByPriority(visibleCards, currentUserId, getCardProgress);
+      const sortedCards = sortCardsByPriority(
+        visibleCards,
+        currentUserId,
+        getCardProgress,
+      );
       setCards(sortedCards);
     } catch (err) {
       setError((err as Error).message);

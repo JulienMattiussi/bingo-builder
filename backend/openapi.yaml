@@ -256,6 +256,40 @@ components:
           description: Detailed validation errors (for 400 responses)
       required:
         - message
+    CardStats:
+      type: object
+      properties:
+        published:
+          type: integer
+          description: Number of published cards
+          example: 10
+        unpublished:
+          type: integer
+          description: Number of unpublished cards
+          example: 5
+        maxPublished:
+          type: integer
+          description: Maximum allowed published cards
+          example: 50
+        maxUnpublished:
+          type: integer
+          description: Maximum allowed unpublished cards
+          example: 50
+        canCreate:
+          type: boolean
+          description: Whether user can create new cards
+          example: true
+        canPublish:
+          type: boolean
+          description: Whether user can publish more cards
+          example: true
+      required:
+        - published
+        - unpublished
+        - maxPublished
+        - maxUnpublished
+        - canCreate
+        - canPublish
     SuccessMessage:
       type: object
       properties:
@@ -390,6 +424,16 @@ paths:
         Rate limited to prevent scraping.
       tags:
         - cards
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+            description: User ID for ownership verification (UUID v4)
+            example: 550e8400-e29b-41d4-a716-446655440000
+          required: false
+          description: User ID for ownership verification (UUID v4)
+          name: userId
+          in: query
       responses:
         "200":
           description: Successful response
@@ -479,6 +523,51 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /api/cards/stats/counts:
+    get:
+      summary: Get card statistics
+      description: Retrieve counts of published and unpublished cards, along with
+        system limits. Rate limited to prevent abuse.
+      tags:
+        - cards
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CardStats"
+        "429":
+          description: Rate limit exceeded
+          headers:
+            RateLimit-Limit:
+              schema:
+                type: integer
+                description: Maximum requests allowed
+              required: true
+              description: Maximum requests allowed
+            RateLimit-Remaining:
+              schema:
+                type: integer
+                description: Requests remaining
+              required: true
+              description: Requests remaining
+            RateLimit-Reset:
+              schema:
+                type: integer
+                description: Time when limit resets (Unix timestamp)
+              required: true
+              description: Time when limit resets (Unix timestamp)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /api/cards/{id}:
     get:
       summary: Get a single card
@@ -495,6 +584,15 @@ paths:
           description: MongoDB ObjectId
           name: id
           in: path
+        - schema:
+            type: string
+            format: uuid
+            description: User ID for ownership verification (UUID v4)
+            example: 550e8400-e29b-41d4-a716-446655440000
+          required: false
+          description: User ID for ownership verification (UUID v4)
+          name: userId
+          in: query
       responses:
         "200":
           description: Successful response

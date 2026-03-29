@@ -57,16 +57,16 @@ function Profile() {
     const id = userIdUtils.getUserId();
     setUserId(id);
 
-    loadCards(id);
+    loadCards();
   }, [navigate, location.state]);
 
-  const loadCards = async (currentUserId: string) => {
+  const loadCards = async () => {
     try {
       setLoadingCards(true);
       const allCards = await api.getCards();
 
-      // Filter owned cards using ownerId
-      const owned = allCards.filter((card) => card.ownerId === currentUserId);
+      // Filter owned cards using isOwner flag
+      const owned = allCards.filter((card) => card.isOwner);
       setOwnedCards(owned);
 
       // Find played cards by checking localStorage
@@ -254,8 +254,8 @@ function Profile() {
         setSuccess("Nickname updated successfully!");
       }
 
-      // Reload cards with same user ID
-      loadCards(userId);
+      // Reload cards
+      loadCards();
     } catch (err) {
       setError((err as Error).message || "Failed to update nickname");
     }
@@ -271,7 +271,7 @@ function Profile() {
 
     try {
       await api.unpublishCard(cardId, userId);
-      await loadCards(userId);
+      await loadCards();
       setSuccess("Card unpublished successfully!");
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
@@ -634,13 +634,15 @@ function Profile() {
               {Object.entries(
                 adminCards.reduce(
                   (acc, card) => {
-                    if (!acc[card.ownerId]) {
-                      acc[card.ownerId] = {
+                    // Admin endpoint includes ownerId
+                    const ownerId = card.ownerId || "unknown";
+                    if (!acc[ownerId]) {
+                      acc[ownerId] = {
                         createdBy: card.createdBy,
                         cards: [],
                       };
                     }
-                    acc[card.ownerId].cards.push(card);
+                    acc[ownerId].cards.push(card);
                     return acc;
                   },
                   {} as Record<
