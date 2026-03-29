@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import {
   getCompletionPercentage,
   sortCardsByPriority,
@@ -91,38 +91,128 @@ describe("sortCardsByPriority", () => {
   const currentUserId = "user1";
   const otherUserId = "user2";
 
-  // Mock getCardProgress function
-  const mockProgress = (progressMap: Record<string, CardProgress>) => {
+  // Mock getCardProgress function with localStorage
+  const mockProgressWithStorage = (
+    progressMap: Record<string, CardProgress>,
+    checkedTilesMap: Record<string, number[]>,
+  ) => {
+    // Setup localStorage
+    Object.keys(checkedTilesMap).forEach((cardId) => {
+      const checkedTiles = checkedTilesMap[cardId];
+      localStorage.setItem(
+        `bingo-progress-${cardId}`,
+        JSON.stringify({ checkedTiles }),
+      );
+    });
+
     return (cardId: string): CardProgress => {
       return progressMap[cardId] || { played: false, completed: false };
     };
   };
 
-  describe("Priority 1: Cards I started but not won yet", () => {
-    it("should prioritize played but not completed cards first", () => {
+  afterEach(() => {
+    // Clean up localStorage after each test
+    localStorage.clear();
+  });
+
+  describe("Uncompleted vs Completed cards", () => {
+    it("should prioritize uncompleted cards over completed cards", () => {
       const cards = [
         createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("3", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
+        createCard("2", currentUserId, true, ["A", "B", "C", "D", "", "", "", "", ""]),
+        createCard("3", currentUserId, true, ["A", "B", "C", "D", "E", "", "", "", ""]),
       ];
 
       const progressMap = {
-        "1": { played: false, completed: false },
-        "2": { played: true, completed: false }, // Started but not won
-        "3": { played: true, completed: true }, // Won
+        "1": { played: true, completed: true }, // Completed
+        "2": { played: true, completed: false }, // Uncompleted
+        "3": { played: true, completed: false }, // Uncompleted
       };
 
-      const sorted = sortCardsByPriority(cards, currentUserId, mockProgress(progressMap));
+      const checkedTilesMap = {
+        "1": [0, 1, 2], // 3 tiles checked
+        "2": [0, 1], // 2 tiles checked
+        "3": [0, 1, 2, 3], // 4 tiles checked
+      };
 
-      expect(sorted[0]._id).toBe("2"); // Started but not won
-      expect(sorted[1]._id).toBe("1"); // Not played
-      expect(sorted[2]._id).toBe("3"); // Completed
+      const sorted = sortCardsByPriority(
+        cards,
+        currentUserId,
+        mockProgressWithStorage(progressMap, checkedTilesMap),
+      );
+
+      // Uncompleted cards first (sorted by checked count descending)
+      expect(sorted[0]._id).toBe("3"); // Uncompleted, 4 checked
+      expect(sorted[1]._id).toBe("2"); // Uncompleted, 2 checked
+      expect(sorted[2]._id).toBe("1"); // Completed, 3 checked (last)
+    });
+  });
+
+  describe("Sorting by checked tiles count", () => {
+    it("should sort uncompleted cards by checked tiles descending", () => {
+      const cards = [
+        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
+        createCard("2", currentUserId, true, ["A", "B", "C", "D", "", "", "", "", ""]),
+        createCard("3", currentUserId, true, ["A", "", "", "", "", "", "", "", ""]),
+      ];
+
+      const progressMap = {
+        "1": { played: true, completed: false },
+        "2": { played: true, completed: false },
+        "3": { played: true, completed: false },
+      };
+
+      const checkedTilesMap = {
+        "1": [0, 1], // 2 tiles checked
+        "2": [0, 1, 2, 3, 4], // 5 tiles checked
+        "3": [0], // 1 tile checked
+      };
+
+      const sorted = sortCardsByPriority(
+        cards,
+        currentUserId,
+        mockProgressWithStorage(progressMap, checkedTilesMap),
+      );
+
+      expect(sorted[0]._id).toBe("2"); // 5 checked
+      expect(sorted[1]._id).toBe("1"); // 2 checked
+      expect(sorted[2]._id).toBe("3"); // 1 checked
     });
 
-    it("should prioritize my played-not-won over others' cards", () => {
+    it("should sort completed cards by checked tiles descending", () => {
       const cards = [
-        createCard("1", otherUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
+        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
+        createCard("2", currentUserId, true, ["A", "B", "C", "D", "", "", "", "", ""]),
+        createCard("3", currentUserId, true, ["A", "", "", "", "", "", "", "", ""]),
+      ];
+
+      const progressMap = {
+        "1": { played: true, completed: true },
+        "2": { played: true, completed: true },
+        "3": { played: true, completed: true },
+      };
+
+      const checkedTilesMap = {
+        "1": [0, 1, 2], // 3 tiles checked
+        "2": [0, 1, 2, 3, 4, 5], // 6 tiles checked
+        "3": [0, 1], // 2 tiles checked
+      };
+
+      const sorted = sortCardsByPriority(
+        cards,
+        currentUserId,
+        mockProgressWithStorage(progressMap, checkedTilesMap),
+      );
+
+      expect(sorted[0]._id).toBe("2"); // 6 checked
+      expect(sorted[1]._id).toBe("1"); // 3 checked
+      expect(sorted[2]._id).toBe("3"); // 2 checked
+    });
+
+    it("should handle cards with no checked tiles", () => {
+      const cards = [
+        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
+        createCard("2", currentUserId, true, ["A", "B", "C", "D", "", "", "", "", ""]),
       ];
 
       const progressMap = {
@@ -130,135 +220,61 @@ describe("sortCardsByPriority", () => {
         "2": { played: true, completed: false },
       };
 
-      const sorted = sortCardsByPriority(cards, currentUserId, mockProgress(progressMap));
+      const checkedTilesMap = {
+        "2": [0, 1], // 2 tiles checked
+        // "1" has no progress in localStorage
+      };
 
-      expect(sorted[0]._id).toBe("2"); // My played-not-won card
+      const sorted = sortCardsByPriority(
+        cards,
+        currentUserId,
+        mockProgressWithStorage(progressMap, checkedTilesMap),
+      );
+
+      expect(sorted[0]._id).toBe("2"); // 2 checked
+      expect(sorted[1]._id).toBe("1"); // 0 checked
     });
   });
 
-  describe("Priority 2: My unpublished cards", () => {
-    it("should prioritize my unpublished cards after played-not-won", () => {
+  describe("Mixed scenarios", () => {
+    it("should correctly sort mixed completed and uncompleted cards", () => {
       const cards = [
         createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, false, ["A", "B", "C", "", "", "", "", "", ""]),
+        createCard("2", otherUserId, true, ["A", "B", "C", "D", "", "", "", "", ""]),
+        createCard("3", currentUserId, true, ["A", "", "", "", "", "", "", "", ""]),
+        createCard("4", otherUserId, true, ["A", "B", "", "", "", "", "", "", ""]),
       ];
 
       const progressMap = {
-        "1": { played: false, completed: false },
-        "2": { played: false, completed: false },
+        "1": { played: true, completed: false }, // Uncompleted
+        "2": { played: true, completed: true }, // Completed
+        "3": { played: true, completed: false }, // Uncompleted
+        "4": { played: true, completed: true }, // Completed
       };
 
-      const sorted = sortCardsByPriority(cards, currentUserId, mockProgress(progressMap));
-
-      expect(sorted[0]._id).toBe("2"); // My unpublished
-      expect(sorted[1]._id).toBe("1"); // My published
-    });
-
-    it("should sort my unpublished cards by completion (most complete first)", () => {
-      const cards = [
-        createCard("1", currentUserId, false, ["A", "", "", "", "", "", "", "", ""]), // 11% complete
-        createCard("2", currentUserId, false, ["A", "B", "C", "D", "", "", "", "", ""]), // 44% complete
-        createCard("3", currentUserId, false, ["A", "B", "", "", "", "", "", "", ""]), // 22% complete
-      ];
-
-      const progressMap = {
-        "1": { played: false, completed: false },
-        "2": { played: false, completed: false },
-        "3": { played: false, completed: false },
+      const checkedTilesMap = {
+        "1": [0, 1], // 2 tiles
+        "2": [0, 1, 2, 3, 4, 5], // 6 tiles
+        "3": [0, 1, 2, 3], // 4 tiles
+        "4": [0], // 1 tile
       };
 
-      const sorted = sortCardsByPriority(cards, currentUserId, mockProgress(progressMap));
-
-      expect(sorted[0]._id).toBe("2"); // 44% complete
-      expect(sorted[1]._id).toBe("3"); // 22% complete
-      expect(sorted[2]._id).toBe("1"); // 11% complete
-    });
-  });
-
-  describe("Priority 3: My published cards", () => {
-    it("should prioritize my published cards after my unpublished", () => {
-      const cards = [
-        createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, false, ["A", "B", "C", "", "", "", "", "", ""]),
-      ];
-
-      const progressMap = {
-        "1": { played: false, completed: false },
-        "2": { played: false, completed: false },
-      };
-
-      const sorted = sortCardsByPriority(cards, currentUserId, mockProgress(progressMap));
-
-      expect(sorted[0]._id).toBe("2"); // My unpublished
-      expect(sorted[1]._id).toBe("1"); // My published
-    });
-
-    it("should prioritize my published over others' published", () => {
-      const cards = [
-        createCard("1", otherUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-      ];
-
-      const progressMap = {
-        "1": { played: false, completed: false },
-        "2": { played: false, completed: false },
-      };
-
-      const sorted = sortCardsByPriority(cards, currentUserId, mockProgress(progressMap));
-
-      expect(sorted[0]._id).toBe("2"); // My published
-      expect(sorted[1]._id).toBe("1"); // Others' published
-    });
-  });
-
-  describe("Priority 4: Others' published cards", () => {
-    it("should put others' published cards after my published cards", () => {
-      const cards = [
-        createCard("1", otherUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-        createCard("2", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
-      ];
-
-      const progressMap = {
-        "1": { played: false, completed: false },
-        "2": { played: false, completed: false },
-      };
-
-      const sorted = sortCardsByPriority(cards, currentUserId, mockProgress(progressMap));
-
-      expect(sorted[0]._id).toBe("2"); // My published
-      expect(sorted[1]._id).toBe("1"); // Others' published
-    });
-  });
-
-  describe("Complex scenarios", () => {
-    it("should correctly sort a mixed set of cards (excluding others' unpublished)", () => {
-      const cards = [
-        createCard("1", otherUserId, true, ["A", "B", "C", "", "", "", "", "", ""]), // Others' published
-        createCard("2", currentUserId, false, ["A", "B", "", "", "", "", "", "", ""]), // My unpublished (22%)
-        createCard("3", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]), // My published, played not won
-        createCard("5", currentUserId, false, ["A", "B", "C", "D", "", "", "", "", ""]), // My unpublished (44%)
-        createCard("6", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]), // My published
-      ];
-
-      const progressMap = {
-        "1": { played: false, completed: false },
-        "2": { played: false, completed: false },
-        "3": { played: true, completed: false }, // Played not won
-        "5": { played: false, completed: false },
-        "6": { played: false, completed: false },
-      };
-
-      const sorted = sortCardsByPriority(cards, currentUserId, mockProgress(progressMap));
+      const sorted = sortCardsByPriority(
+        cards,
+        currentUserId,
+        mockProgressWithStorage(progressMap, checkedTilesMap),
+      );
 
       expect(sorted.map((c) => c._id)).toEqual([
-        "3", // Priority 1: My played not won
-        "5", // Priority 2: My unpublished (44% complete)
-        "2", // Priority 2: My unpublished (22% complete)
-        "6", // Priority 3: My published
-        "1", // Priority 4: Others' published
+        "3", // Uncompleted, 4 checked
+        "1", // Uncompleted, 2 checked
+        "2", // Completed, 6 checked
+        "4", // Completed, 1 checked
       ]);
     });
+  });
 
+  describe("Edge cases", () => {
     it("should not mutate the original array", () => {
       const cards = [
         createCard("1", currentUserId, true, ["A", "B", "C", "", "", "", "", "", ""]),
@@ -272,7 +288,11 @@ describe("sortCardsByPriority", () => {
         "2": { played: false, completed: false },
       };
 
-      sortCardsByPriority(cards, currentUserId, mockProgress(progressMap));
+      sortCardsByPriority(
+        cards,
+        currentUserId,
+        mockProgressWithStorage(progressMap, {}),
+      );
 
       expect(cards.map((c) => c._id)).toEqual(originalOrder);
     });
@@ -282,7 +302,7 @@ describe("sortCardsByPriority", () => {
       const sorted = sortCardsByPriority(
         cards,
         currentUserId,
-        mockProgress({}),
+        mockProgressWithStorage({}, {}),
       );
       expect(sorted).toEqual([]);
     });
@@ -296,7 +316,11 @@ describe("sortCardsByPriority", () => {
         "1": { played: false, completed: false },
       };
 
-      const sorted = sortCardsByPriority(cards, currentUserId, mockProgress(progressMap));
+      const sorted = sortCardsByPriority(
+        cards,
+        currentUserId,
+        mockProgressWithStorage(progressMap, {}),
+      );
 
       expect(sorted.length).toBe(1);
       expect(sorted[0]._id).toBe("1");
